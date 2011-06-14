@@ -1,3 +1,6 @@
 [submodule "src/vendor/Doctrine"]
 	path = src/vendor/Doctrine
 	url = git://github.com/doctrine/common.git
+[submodule "src\\vendor\\Moko"]
+	path = src\\vendor\\Moko
+	url = git://github.com/sergeil/Moko.git

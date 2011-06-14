@@ -1,10 +1,12 @@
 <?php
- 
+
+namespace Vobla\ServiceConstruction\Definition;
+
 /**
  * @copyright 2011 Modera Foundation
  * @author Sergei Lissovski <sergei.lissovski@modera.net>
  */ 
-class Reference 
+class ServiceReference
 {
     /**
      * @var string
@@ -30,5 +32,10 @@ class Reference
     public function __construct($serviceId = null)
     {
         $this->setServiceId($serviceId);
+    }
+
+    static public function clazz()
+    {
+        return get_called_class();
     }
 }

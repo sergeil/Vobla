@@ -1,6 +1,19 @@
 <?php
 
-use Doctrine\Common\Annotations\AnnotationReader;
+namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder;
+
+use Doctrine\Common\Annotations\AnnotationReader,
+    Vobla\Container,
+    Vobla\ServiceConstruction\Definition\ServiceDefinition,
+    Vobla\ServiceConstruction\Definition\ServiceReference,
+    Vobla\ServiceConstruction\Definition\QualifiedReference;
+
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Qualifier,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Reference,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service;
 
 /**
  * @copyright 2011 Modera Foundation
@@ -56,22 +69,28 @@ class AnnotationsBuilder
                     $container->getDefinitionsHolder()->register(
                             $data[0],
                             $data[1] // don't get confused, we will be using a reference to the same object later
-                        );
-                    }
+                    );
                 }
+            }
         }
     }
+
 
     /**
      * TODO: add support for parents scanning
      *
      * @throws Exception
      * @param Container $container
-     * @param ReflectionClass $reflClass
+     * @param string|ReflectionClass $reflClass
      * @return bool|ServiceDefinition
      */
-    public function processClass(Container $container, \ReflectionClass $reflClass)
+    public function processClass(Container $container, $clazz)
     {
+        $reflClass = null;
+        if (!($clazz instanceof \ReflectionClass)) {
+            $reflClass = new \ReflectionClass($clazz);
+        }
+
         $serviceDef = new ServiceDefinition();
         $args = $constructorArgs = array();
 
@@ -80,8 +99,47 @@ class AnnotationsBuilder
         if (!$serviceAnnotation) { // not a service, skipping
             return false;
         }
+        $serviceDef->setAbstract($serviceAnnotation->isAbstract);
+        $serviceDef->setArguments($this->processProperties($reflClass));
 
+        $isConstructorFound = false;
+        foreach ($reflClass->getMethods() as $reflMethod) {
+            /* @var Constructor $constructorAnnotation */
+            $constructorAnnotation = $this->annotationReader->getMethodAnnotation($reflMethod, Constructor::clazz());
+            if (!$constructorAnnotation) {
+                continue;
+            } else if ($isConstructorFound) {
+                // TODO throw a proper exception
+                throw new \Exception(sprintf('Multiple constructors defined in class %s', $reflClass->getName()));
+            }
+
+            $isConstructorFound = true;
+            $serviceDef->setFactoryMethod($reflMethod->getName());
+            $serviceDef->setConstructorArguments(
+                $this->dereferenceConstructorArgs($constructorAnnotation->args)
+            );
+        }
+
+        return $serviceDef;
+    }
+
+    protected function processProperties(\ReflectionClass $reflClass)
+    {
+        $result = $serviceClasses = array();
         foreach ($reflClass->getProperties() as $reflProp) {
+            $reflDeclaredClass = $reflProp->getDeclaringClass();
+            if (!in_array($reflDeclaredClass->getName(), $serviceClasses)) {
+                $serviceAnnotation = $this->annotationReader->getClassAnnotation($reflDeclaredClass, Service::clazz());
+                if ($serviceAnnotation) {
+                    $serviceClasses[] = $reflDeclaredClass->getName();
+                }
+            }
+
+            // if a declared class doesn't have Service annotation skipping its properties
+            if (!in_array($reflDeclaredClass->getName(), $serviceClasses)) {
+                continue;
+            }
+
             /* @var Autowired $autowiredAnnotation */
             $autowiredAnnotation = $this->annotationReader->getPropertyAnnotation($reflProp, Autowired::clazz());
             if (!$autowiredAnnotation) {
@@ -93,34 +151,15 @@ class AnnotationsBuilder
                 $refDef = new QualifiedReference($autowiredAnnotation->qualifier);
             } else {
                 $refServiceId = $autowiredAnnotation->id === null ? $reflProp->getName() : $autowiredAnnotation->id;
-                $refDef = new Reference($refServiceId);
+                $refDef = new ServiceReference($refServiceId);
             }
 
-            $args[$reflProp->getName()] = $refDef;
+            $result[$reflProp->getName()] = $refDef;
         }
-
-        $isConstructorFound = false;
-        foreach ($reflClass->getMethods() as $reflMethod) {
-            /* @var Constructor $constructorAnnotation */
-            $constructorAnnotation = $this->annotationReader->getMethodAnnotation($reflMethod, Constructor::clazz());
-            if (!$constructorAnnotation) {
-                continue;
-            } else if ($isConstructorFound) {
-                // TODO throw proper exception
-                throw new \Exception(sprintf('Multiple constructors defined in class %s', $reflClass->getName()));
-            }
-
-            $isConstructorFound = true;
-            $serviceDef->setFactoryMethod($reflMethod->getName());
-            $serviceDef->setConstructorArguments(
-                $this->dereferenceConstructorArgs($constructorAnnotation->args)
-            );
-        }
-
-        $serviceDef->setArguments($args);
-
-        return $serviceDef;
+        
+        return $result;
     }
+
 
     /**
      * TODO: consider options of adding support of some external handlers of annotations

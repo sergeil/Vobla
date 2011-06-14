@@ -1,5 +1,7 @@
 <?php
 
+namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
+
 use Doctrine\Common\Annotations\Annotation;
 
 /**

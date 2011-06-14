@@ -1,11 +1,18 @@
 <?php
- 
+
+namespace Vobla\ServiceConstruction\Definition;
+
 /**
  * @copyright 2011 Modera Foundation
  * @author Sergei Lissovski <sergei.lissovski@modera.net>
  */ 
 class ServiceDefinition
 {
+    /**
+     * @var bool
+     */
+    private $isAbstract = false;
+
     /**
      * @var string
      */
@@ -143,6 +150,22 @@ class ServiceDefinition
     }
 
     /**
+     * @param boolean $isAbstract
+     */
+    public function setAbstract($isAbstract)
+    {
+        $this->isAbstract = $isAbstract;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isAbstract()
+    {
+        return $this->isAbstract;
+    }
+
+    /**
      * @param string $qualifier
      */
     public function setQualifier($qualifier)
@@ -172,5 +195,10 @@ class ServiceDefinition
     public function getScope()
     {
         return $this->scope;
+    }
+
+    static public function clazz()
+    {
+        return get_called_class();
     }
 }

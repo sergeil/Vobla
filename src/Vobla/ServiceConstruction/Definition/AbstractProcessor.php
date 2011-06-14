@@ -1,5 +1,7 @@
 <?php
- 
+
+namespace Vobla\ServiceConstruction\Definition;
+
 /**
  * @copyright 2011 Modera Foundation
  * @author Sergei Lissovski <sergei.lissovski@modera.net>

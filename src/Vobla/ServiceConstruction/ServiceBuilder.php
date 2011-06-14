@@ -6,5 +6,15 @@
  */ 
 class ServiceBuilder
 {
-    
+    protected $container;
+
+    public function init(Container $container)
+    {
+        $this->container = $container;
+    }
+
+    public function process(ServiceDefition $serviceDefinition)
+    {
+        
+    }
 }
