@@ -10,6 +10,8 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder,
     Vobla\Container,
     Moko\MockFactory,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Definition\ServiceReference,
     Vobla\ServiceConstruction\Definition\QualifiedReference;
@@ -35,17 +37,16 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
         $this->mf = new MockFactory($this);
 
         $ar = new AnnotationReader();
-        $ar->setAutoloadAnnotations(false);
+        $ar->setAutoloadAnnotations(true);
         $this->ab = new AnnotationsBuilder($ar);
     }
 
     public function testProcessClass()
     {
-        $c = $this->mf->createTestCaseAware(Container::clazz())->createMock();
-
         /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $definition */
-        $definition = $this->ab->processClass($c, SomeDumbService::clazz());
+        $definition = $this->ab->processClass(SomeDumbService::clazz());
         $this->assertTrue($definition instanceof ServiceDefinition);
+        $this->assertEquals('fooScope', $definition->getScope());
 
         $args = $definition->getArguments();
         $this->assertTrue(is_array($args));
@@ -67,7 +68,7 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(isset($args['ref2x']));
         $this->assertType(ServiceReference::clazz(), $args['ref2x']);
         $this->assertEquals('barbaz', $args['ref2x']->getServiceId());
-
+        
         $this->assertTrue(isset($args['ref3x']));
         $this->assertType(
             QualifiedReference::clazz(),
@@ -79,6 +80,40 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
         );
         $this->assertEquals('booz', $args['ref3x']->getQualifier());
 
+        $this->assertEquals(
+            'fooFactory',
+            $definition->getFactoryMethod(),
+            sprintf(
+                "For some reason '%s' annotation was ignored on %s::%s",
+                Constructor::clazz(), SomeDumbService::clazz(), 'factoryMethod'
+            )
+        );
 
+        $cArgs = $definition->getConstructorArguments();
+        $this->assertEquals(3, sizeof($cArgs), "Constructor parameters count is wrong.");
+
+        $this->assertTrue($cArgs[0] instanceof QualifiedReference);
+        $this->assertEquals('fooQfr', $cArgs[0]->getQualifier(), "Qualifier parameter for constructor's method wasn't take into account.");
+
+        $this->assertTrue($cArgs[1] instanceof ServiceReference);
+        $this->assertEquals('bService', $cArgs[1]->getServiceId(), "Parameter without explicitely specified 'name' wasn't registered properly.");
+
+        $this->assertTrue($cArgs[2] instanceof ServiceReference);
+        $this->assertEquals(
+            'megaCService',
+            $cArgs[2]->getServiceId(),
+            sprintf(
+                "'id' parameter for third parameter of %s::%s factory-method hasn't been properly treated.",
+                SomeDumbService::clazz(), 'fooFactory'
+            )
+        );
+    }
+
+    /**
+     * @expectedException \Vobla\Exception
+     */
+    public function testProcessClassWithTwoConstructors()
+    {
+        $this->ab->processClass(ClassWithTwoConstructors::clazz());
     }
 }

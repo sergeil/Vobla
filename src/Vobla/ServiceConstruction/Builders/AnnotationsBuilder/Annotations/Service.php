@@ -14,6 +14,8 @@ class Service extends Annotation
 
     public $isAbstract = false;
 
+    public $scope;
+
     static public function clazz()
     {
         return get_called_class();

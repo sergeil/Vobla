@@ -6,12 +6,13 @@ use Doctrine\Common\Annotations\AnnotationReader,
     Vobla\Container,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Definition\ServiceReference,
-    Vobla\ServiceConstruction\Definition\QualifiedReference;
+    Vobla\ServiceConstruction\Definition\QualifiedReference,
+    Vobla\Exception;
 
 use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Qualifier,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\ConstructorParamQualifier,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Reference,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service;
 
@@ -80,11 +81,10 @@ class AnnotationsBuilder
      * TODO: add support for parents scanning
      *
      * @throws Exception
-     * @param Container $container
      * @param string|ReflectionClass $reflClass
      * @return bool|ServiceDefinition
      */
-    public function processClass(Container $container, $clazz)
+    public function processClass($clazz)
     {
         $reflClass = null;
         if (!($clazz instanceof \ReflectionClass)) {
@@ -101,6 +101,7 @@ class AnnotationsBuilder
         }
         $serviceDef->setAbstract($serviceAnnotation->isAbstract);
         $serviceDef->setArguments($this->processProperties($reflClass));
+        $serviceDef->setScope($serviceAnnotation->scope);
 
         $isConstructorFound = false;
         foreach ($reflClass->getMethods() as $reflMethod) {
@@ -110,13 +111,13 @@ class AnnotationsBuilder
                 continue;
             } else if ($isConstructorFound) {
                 // TODO throw a proper exception
-                throw new \Exception(sprintf('Multiple constructors defined in class %s', $reflClass->getName()));
+                throw new Exception(sprintf('Multiple constructors defined in class %s', $reflClass->getName()));
             }
 
             $isConstructorFound = true;
             $serviceDef->setFactoryMethod($reflMethod->getName());
             $serviceDef->setConstructorArguments(
-                $this->dereferenceConstructorArgs($constructorAnnotation->args)
+                $this->dereferenceConstructorParams($reflMethod, $constructorAnnotation->params)
             );
         }
 
@@ -160,26 +161,62 @@ class AnnotationsBuilder
         return $result;
     }
 
+    final protected function dereferenceConstructorParams(\ReflectionMethod $reflMethod, array $constructorParams)
+    {
+        try {
+            return $this->doDereferenceConstructorParams($reflMethod, $constructorParams);
+        } catch (Exception $e) {
+            throw new Exception(
+                sprintf(
+                    'Failed to process annotations for constructor method %s::%s".',
+                    $reflMethod->getDeclaringClass()->getName(),
+                    $reflMethod->getName()
+                )
+            );
+        }
+    }
 
     /**
-     * TODO: consider options of adding support of some external handlers of annotations
-     *
      * Override this method if you want to introduce some more annotations
      *
-     * @param array $constructorArgs
+     * @param array $constructorParams
      * @return array
      */
-    protected function dereferenceConstructorArgs(array $constructorArgs)
+    protected function doDereferenceConstructorParams(\ReflectionMethod $reflMethod, array $constructorParams)
     {
-        $dereferencedConstructorArgs = array();
-        foreach ($constructorArgs as $arg) {
-            if ($arg instanceof Qualifier) {
-                $dereferencedConstructorArgs[$arg] = new QualifiedReference($arg);
+        $dereferencedParams = array();
+        foreach ($reflMethod->getParameters() as $reflParam) {
+            $dereferencedParams[$reflParam->getName()] = null;
+        }
+                
+        /* @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter $param */
+        foreach ($constructorParams as $param) {
+            if ($param->name == null) {
+                throw new Exception(
+                    "Parameter 'name' is required."
+                );
+            }
+
+            // TODO externalize
+            $value = null;
+            if ($param->qualifier != null) {
+                $value = new QualifiedReference($param->qualifier);
+            } else if ($param->id != null) {
+                $value = new ServiceReference($param->id);
             } else {
-                $dereferencedConstructorArgs[$arg] = new Reference($arg);
+                throw new Exception(
+                    sprintf("No 'id' nor 'qualifier' is specified.", $param->name)
+                );
+            }
+            $dereferencedParams[$param->name] = $value;
+        }
+        
+        foreach ($dereferencedParams as $paramName=>$value) {
+            if ($value === null) {
+                $dereferencedParams[$paramName] = new ServiceReference($paramName);
             }
         }
 
-        return $dereferencedConstructorArgs;
+        return array_values($dereferencedParams);
     }
 }

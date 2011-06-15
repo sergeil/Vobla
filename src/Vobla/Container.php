@@ -12,7 +12,7 @@ class Container
     
     protected $definitionsHolder;
 
-    public function getService($id)
+    public function getServiceById($id)
     {
         $cx = $this->getContext();
         if (!$cx->has($id)) {
@@ -27,6 +27,11 @@ class Container
         } else {
             return $this->getContext()->get($id);
         }
+    }
+
+    public function getServiceByQualifier($qualifier)
+    {
+        
     }
 
     static public function clazz()

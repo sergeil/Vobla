@@ -10,7 +10,7 @@ use Doctrine\Common\Annotations\Annotation;
  */ 
 class Constructor extends Annotation
 {
-    public $args = array();
+    public $params = array();
 
     static public function clazz()
     {

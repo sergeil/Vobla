@@ -2,8 +2,6 @@
 
 namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
-use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service;
-
 class SomeBarService
 {
     /**
@@ -20,11 +18,16 @@ class SomeFooService extends SomeBarService
     /**
      * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired
      */
-    public $ref4x;
+    protected $ref4x;
+
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(id="someRef3xService")
+     */
+    protected $ref3x;
 }
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(id="someDumbServiceId")
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(id="someDumbServiceId", scope="fooScope")
  */
 class SomeDumbService extends SomeFooService
 {
@@ -44,9 +47,43 @@ class SomeDumbService extends SomeFooService
     protected $ref3x;
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor(
+     *     params={
+     *         @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter(name="aService", qualifier="fooQfr"),
+     *         @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter(name="cService", id="megaCService")
+     *     }
+     * )
      */
-    public function fooFactory()
+    public function fooFactory($aService, $bService, $cService)
+    {
+        
+    }
+
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}
+
+/**
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ *
+ * @/FactoryService(id="", class="", method="", params="")
+ */
+class ClassWithTwoConstructors
+{
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor
+     */
+    public function factory1()
+    {
+
+    }
+
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor
+     */
+    public function factory2()
     {
         
     }

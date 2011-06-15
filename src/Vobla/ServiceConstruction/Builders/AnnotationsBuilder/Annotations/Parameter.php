@@ -10,5 +10,9 @@ use Doctrine\Common\Annotations\Annotation;
  */ 
 class Parameter extends Annotation
 {
-    
+    public $name;
+
+    public $qualifier;
+
+    public $id;
 }
