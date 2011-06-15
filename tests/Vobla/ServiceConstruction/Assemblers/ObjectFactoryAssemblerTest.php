@@ -10,7 +10,7 @@ use Vobla\ServiceConstruction\Assemblers\AssemblersManager,
     Vobla\Container;
 
 require_once 'fixtures/classes.php';
-require_once '../../../bootstrap.php';
+require_once __DIR__.'/../../../bootstrap.php';
 
 /**
  * @copyright 2011 Modera Foundation
@@ -58,7 +58,7 @@ class ObjectFactoryAssemblerTest extends \PHPUnit_Framework_TestCase
     {
         $am = $this->mf
                    ->createTestCaseAware(AssemblersManager::clazz())
-                   ->addMethod('proceed', function() {}, 1)->createMock();
+                   ->addMethod('proceed', function($self, $def, $obj) { return $obj; }, 1)->createMock();
 
         return $am;
     }

@@ -88,8 +88,6 @@ class ObjectFactoryAssembler extends AbstractReferenceWeaverAssembler
             $this->dereferenceConstructorParameters($definition)
         );
         
-        $assemblersManager->proceed($definition, $obj);
-
-        return $obj;
+        return $assemblersManager->proceed($definition, $obj);
     }
 }
