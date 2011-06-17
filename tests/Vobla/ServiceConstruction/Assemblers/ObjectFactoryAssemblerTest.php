@@ -44,7 +44,7 @@ class ObjectFactoryAssemblerTest extends \PHPUnit_Framework_TestCase
     {
         $tc = $this;
 
-        $container = $this->mf->createTestCaseAware(Container::clazz())
+        $container = $this->mf->createTestCaseAware(Container::clazz(), true)
              ->addMethod('getServiceById', function($self, $serviceId) use($tc) {
             return $serviceId;
         }, 1)->addMethod('getServiceByQualifier', function($self, $qualifier) use ($tc) {
@@ -57,7 +57,7 @@ class ObjectFactoryAssemblerTest extends \PHPUnit_Framework_TestCase
     protected function createAssemblersManagerMock()
     {
         $am = $this->mf
-                   ->createTestCaseAware(AssemblersManager::clazz())
+                   ->createTestCaseAware(AssemblersManager::clazz(), true)
                    ->addMethod('proceed', function($self, $def, $obj) { return $obj; }, 1)->createMock();
 
         return $am;
@@ -112,7 +112,7 @@ class ObjectFactoryAssemblerTest extends \PHPUnit_Framework_TestCase
         $tc = $this;
 
         $am = $this->createAssemblersManagerMock();
-        $c = $this->mf->createTestCaseAware(Container::clazz())->addMethod('getServiceById', function($self, $serviceId) use ($tc) {
+        $c = $this->mf->createTestCaseAware(Container::clazz(), true)->addMethod('getServiceById', function($self, $serviceId) use ($tc) {
             if ($serviceId == 'someFactoryService') {
                 return new MockFactoryOfOtherClass();
             } else if (in_array($serviceId, array('fooService', 'barService'))) {

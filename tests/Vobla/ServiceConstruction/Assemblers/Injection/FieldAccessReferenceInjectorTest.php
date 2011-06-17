@@ -3,7 +3,7 @@
 namespace Vobla\ServiceConstruction\Assemblers\Injection;
 
 require_once __DIR__.'/../../../../bootstrap.php';
-require_once 'fixtures/classes.php';
+require_once __DIR__.'/fixtures/classes.php';
 
 use Vobla\ServiceConstruction\Assemblers\Injection\FieldAccessReferenceInjector,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;

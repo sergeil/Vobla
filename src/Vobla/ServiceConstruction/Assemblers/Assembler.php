@@ -11,6 +11,8 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
  */ 
 interface Assembler
 {
+    const CLAZZ = 'Vobla\ServiceConstruction\Assemblers\Assembler';
+
     public function init(Container $container);
 
     public function execute(AssemblersManager $assemblersManager, ServiceDefinition $definition, $obj = null);

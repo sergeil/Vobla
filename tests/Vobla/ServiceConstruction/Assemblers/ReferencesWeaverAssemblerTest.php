@@ -48,7 +48,7 @@ class ReferencesWeaverAssemblerTest extends \PHPUnit_Framework_TestCase
         $proceedMethod = function($self, $am, $obj) use($tc, $serviceObj) {
             $tc->assertSame($serviceObj, $obj);
         };
-        $ma = $this->mf->create(AssemblersManager::clazz())->addMethod('proceed', $proceedMethod, 1)->createMock();
+        $ma = $this->mf->create(AssemblersManager::clazz(), true)->addMethod('proceed', $proceedMethod, 1)->createMock();
 
         $rwa = new ReferencesWeaverAssembler($ri);
         $rwa->execute($ma, $def, $serviceObj);
