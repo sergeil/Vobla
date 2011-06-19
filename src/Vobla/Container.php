@@ -69,10 +69,8 @@ class Container
 
     public function getServiceByQualifier($qualifier)
     {
-        
+            
     }
-
-
 
     static public function clazz()
     {
@@ -84,6 +82,9 @@ class Container
         $this->configuration = $configuration;
     }
 
+    /**
+     * @return \Vobla\Configuration
+     */
     public function getConfiguration()
     {
         return $this->configuration;

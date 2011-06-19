@@ -1,6 +1,6 @@
 <?php
 
-namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
+namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder;
 
 use Vobla\Container;
 
@@ -10,6 +10,8 @@ use Vobla\Container;
  */ 
 interface ScanPathsProvider
 {
+    const CLAZZ = 'Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ScanPathsProvider';
+
     /**
      * @return array
      */

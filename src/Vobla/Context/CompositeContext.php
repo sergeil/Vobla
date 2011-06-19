@@ -44,7 +44,10 @@ class CompositeContext
     protected function getScopeHandlers()
     {
         if (null === $this->cachedHandlers) {
-            $this->cachedHandlers = $this->getContainer()->getConfiguration()->getContextScopeHandlers();
+            $this->cachedHandlers = $this->getContainer()
+                                         ->getConfiguration()
+                                         ->getContextScopeHandlersProvider()
+                                         ->getContextScopeHandlers();
         }
 
         return $this->cachedHandlers;

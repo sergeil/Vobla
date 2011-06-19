@@ -27,14 +27,23 @@ class AnnotationsBuilder
      */
     protected $annotationReader;
 
-    protected $eligibleFileTypes = array();
+    /**
+     * @var array
+     */
+    protected $eligibleFileTypes = array('php');
 
-    public function __construct(AnnotationReader $annotationReader)
-    {
-        $this->annotationReader = $annotationReader;
-    }
-
+    /**
+     * @var array
+     */
     protected $scanPathsProviders = array();
+
+    /**
+     * @return array
+     */
+    public function getScanPathsProviders()
+    {
+        return $this->scanPathsProviders;
+    }
 
     public function addScanPathProvider(ScanPathsProvider $scanPathProvider)
     {
@@ -42,40 +51,71 @@ class AnnotationsBuilder
         $this->scanPathsProviders[] = $scanPathProvider;
     }
 
-    public function configure(Container $container)
+    public function __construct(AnnotationReader $annotationReader)
     {
-        foreach ($this->scanPathsProviders as $pathsProvider) {
-            foreach ($pathsProvider->getScanPaths($container) as $path) {
-                $this->processPath($container, $path);
-            }
-        }
+        $this->annotationReader = $annotationReader;
     }
 
+    /**
+     * @return array  Filenames we were not able to process
+     */
+    public function configure(Container $container)
+    {
+        $skippedFiles = array();
+        foreach ($this->getScanPathsProviders() as $pathsProvider) {
+            foreach ($pathsProvider->getScanPaths($container) as $path) {
+                $skippedFiles = array_merge($skippedFiles, $this->processPath($container, $path));
+            }
+        }
+        return $skippedFiles;
+    }
+
+    /**
+     * @param \Vobla\Container $container
+     * @param  $path
+     * @return array  Names of files we were not able to process for some reason. Most of the time they will be malformed files.
+     */
     public function processPath(Container $container, $path)
     {
-        foreach (new RecursiveDirectoryIterator(new RecursiveIteratorIterator($path)) as $file) {
+        $skippedFiles = array();
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path)) as $file) {
             $explodedFilename = explode('.', $file->getFilename());
 
             if (!in_array(end($explodedFilename), $this->eligibleFileTypes)) {
                 continue;
             }
 
-            $reflFile = new \Zend_Reflection_File($file->getPathname());
-            $classesInFile = $reflFile->getClasses('ReflectionClass');
+            try {
+                $reflFile = new ReflectionFile(file_get_contents($file->getPathname()));
 
-            foreach ($classesInFile as $reflClass) { // let it be that a file may contain several class declarations
-                $data = $this->processClass($container, $reflClass);
+                $classNames = array(
+                    implode('\\', array($reflFile->getNamespace(), $reflFile->getClassName()))
+                );
+                
+                require_once $file->getPathname();
 
-                if (is_array($data)) {
-                    $container->getDefinitionsHolder()->register(
+                $reflClasses = array();
+                foreach ($classNames as $className) {
+                    $reflClasses[] = new \ReflectionClass($className);
+                }
+
+                foreach ($reflClasses as $reflClass) { // let it be that a file may contain several class declarations
+                    $data = $this->processClass($reflClass);
+
+                    if (is_array($data)) {
+                        $container->getDefinitionsHolder()->register(
                             $data[0],
                             $data[1] // don't get confused, we will be using a reference to the same object later
-                    );
+                        );
+                    }
                 }
+            } catch (\Exception $e) {
+                $skippedFiles[] = $file->getFilename();
             }
         }
-    }
 
+        return $skippedFiles;
+    }
 
     /**
      * TODO: add support for parents scanning
@@ -161,7 +201,7 @@ class AnnotationsBuilder
         return $result;
     }
 
-    final protected function dereferenceConstructorParams(\ReflectionMethod $reflMethod, array $constructorParams)
+    protected function dereferenceConstructorParams(\ReflectionMethod $reflMethod, array $constructorParams)
     {
         try {
             return $this->doDereferenceConstructorParams($reflMethod, $constructorParams);
@@ -218,5 +258,13 @@ class AnnotationsBuilder
         }
 
         return array_values($dereferencedParams);
+    }
+
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
     }
 }
