@@ -7,7 +7,9 @@ require_once __DIR__.'/../../../bootstrap.php';
 use Vobla\Container,
     Vobla\Configuration,
     Vobla\Context\ContextScopeHandler,
-    Vobla\Context\ContextScopeHandlersProvider;
+    Vobla\Context\ContextScopeHandlersProvider,
+    Vobla\ServiceConstruction\DefinitionsHolder,
+    Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
  * @copyright 2011 Modera Foundation
@@ -37,7 +39,11 @@ class CompositeContextTest extends \PHPUnit_Framework_TestCase
         $this->cx = null;
     }
 
-    protected function createMockContainer(array $sessionScopeHandlers)
+    /**
+     * @param  array $sessionScopeHandlers
+     * @return \Moko\Integrated\TestCaseAwareMockDefinition
+     */
+    protected function getContainerMockDefinition($sessionScopeHandlers)
     {
         $shs = $sessionScopeHandlers;
 
@@ -56,9 +62,14 @@ class CompositeContextTest extends \PHPUnit_Framework_TestCase
 
         $ctr = $this->mf->createTestCaseAware(Container::clazz(), true)->addMethod('getConfiguration', function() use($cfg) {
             return $cfg;
-        }, 1)->createMock();
+        }, 1);
 
         return $ctr;
+    }
+
+    protected function createMockContainer(array $sessionScopeHandlers)
+    {
+        return $this->getContainerMockDefinition($sessionScopeHandlers)->createMock();
     }
 
     public function testRegister()
@@ -69,7 +80,7 @@ class CompositeContextTest extends \PHPUnit_Framework_TestCase
 
         $sh1 = $this->mf->createTestCaseAware(ContextScopeHandler::CLAZZ)->addMethod('register', function() use($tc) {
             
-        }, 1)->addMethod('isRegisterResponsible', function($self, $id, $obj) use ($tc, $ser1) {
+        }, 1)->addMethod('isRegisterResponsible', function($self, $id, $serviceDefinition, $obj) use ($tc, $ser1) {
             $tc->assertEquals('ser1', $id, 'The ID passed to the CompositeContext::isRegisterResponsible() and to one of its ContextScopeHandler are different.');
             $tc->assertSame($obj, $ser1, 'Object passed to the CompositeContext::isRegisterResponsible($id, $obj) and to one of its ContextScopeHandler are different.');
             return true;
@@ -80,7 +91,16 @@ class CompositeContextTest extends \PHPUnit_Framework_TestCase
             
         }, 0, 'sh2')->createMock();
 
-        $ctr = $this->createMockContainer(array($sh1, $sh2));
+        $serviceDef = new ServiceDefinition();
+        $definitionsHolder = $this->mf->createTestCaseAware(DefinitionsHolder::clazz())->addMethod('get', function() use($serviceDef) {
+            return $serviceDef;
+        }, 1)->createMock();
+        
+        /* @var \Moko\Integrated\TestCaseAwareMockDefinition $ctrMock */
+        $ctrMock = $this->getContainerMockDefinition(array($sh1, $sh2));
+        $ctr = $ctrMock->addMethod('getDefinitionsHolder', function() use($definitionsHolder) {
+            return $definitionsHolder;
+        }, 1)->createMock();
 
         $cx = $this->cx;
         $cx->init($ctr);
@@ -111,5 +131,31 @@ class CompositeContextTest extends \PHPUnit_Framework_TestCase
         $cx->init($ctr);
 
         $cx->dispense('ser1');
+    }
+
+    public function testContains()
+    {
+        $tc = $this;
+
+        $sh1 = $this->mf->createTestCaseAware(ContextScopeHandler::CLAZZ)->addMethod('contains', function($self, $id) use($tc) {
+            $tc->assertEquals('fooId', $id);
+            return true;
+        }, 1)->createMock();
+
+        $sh2 = $this->mf->createTestCaseAware(ContextScopeHandler::CLAZZ)->addMethod('contains', function($self, $id) {
+        }, 0)->createMock();
+
+        $ctr = $this->createMockContainer(array($sh1, $sh2));
+
+        $cx = $this->cx;
+        $cx->init($ctr);
+
+        $this->assertTrue(
+            $cx->contains('fooId'),
+            sprintf(
+                '%s should have understood that one of the %s contains component with id "fooId" but it didn\'t.',
+                CompositeContext::clazz(), ContextScopeHandler::CLAZZ
+            )
+        );
     }
 }

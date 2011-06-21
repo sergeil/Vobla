@@ -10,7 +10,7 @@ use Vobla\Container;
  * @copyright 2011 Modera Foundation
  * @author Sergei Lissovski <sergei.lissovski@modera.net>
  */ 
-class CompositeContext 
+class CompositeContext implements Context
 {
     /**
      * @var array
@@ -56,7 +56,9 @@ class CompositeContext
     public function register($id, $obj)
     {
         foreach ($this->getScopeHandlers() as $handler) {
-            if ($handler->isRegisterResponsible($id, $obj)) {
+            $definition = $this->getContainer()->getDefinitionsHolder()->get($id);
+
+            if ($handler->isRegisterResponsible($id, $definition, $obj)) {
                 $handler->register($id, $obj);
 
                 return;
@@ -71,5 +73,24 @@ class CompositeContext
                 return $handler->dispense($id);
             }
         }
+    }
+
+    public function contains($id)
+    {
+        foreach ($this->getScopeHandlers() as $cachedHandler) {
+            if ($cachedHandler->contains($id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
     }
 }

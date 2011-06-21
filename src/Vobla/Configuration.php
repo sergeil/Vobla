@@ -2,11 +2,13 @@
 
 namespace Vobla;
 
+use Vobla\ServiceConstruction\Assemblers\AssemblersProvider;
+
 /**
  * @copyright 2011 Modera Foundation
  * @author Sergei Lissovski <sergei.lissovski@modera.net>
  */ 
-class Configuration 
+class Configuration
 {
     /**
      * @var \Vobla\ServiceConstruction\Assemblers\AssemblersProvider
@@ -26,7 +28,7 @@ class Configuration
     /**
      * @param \Vobla\ServiceConstruction\Assemblers\AssemblersProvider $assemblersProvider
      */
-    public function setAssemblersProvider($assemblersProvider)
+    public function setAssemblersProvider(AssemblersProvider $assemblersProvider)
     {
         $this->assemblersProvider = $assemblersProvider;
     }
@@ -71,24 +73,10 @@ class Configuration
         return $this->definitionProcessorsProvider;
     }
 
-
-//    public function getAssemblersProvider()
-//    {
-//
-//    }
-//
-//    public function getDefinitionProcessorsProvider()
-//    {
-//
-//    }
-//
-//    /**
-//     * @return \Vobla\Context\ContextScopeHandlersProvider
-//     */
-//    public function getContextScopeHandlersProvider()
-//    {
-//        return array();
-//    }
+    public function validate()
+    {
+        
+    }
 
     static public function clazz()
     {
