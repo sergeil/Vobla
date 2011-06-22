@@ -142,7 +142,7 @@ class AnnotationsBuilder
         $serviceDef->setAbstract($serviceAnnotation->isAbstract);
         $serviceDef->setArguments($this->processProperties($reflClass));
         $serviceDef->setScope($serviceAnnotation->scope);
-         $serviceDef->setClassName($reflClass->getName());
+        $serviceDef->setClassName($reflClass->getName());
 
         $isConstructorFound = false;
         foreach ($reflClass->getMethods() as $reflMethod) {
@@ -185,7 +185,7 @@ class AnnotationsBuilder
                 continue;
             }
 
-            /* @var Autowired $autowiredAnnotation */
+            /* @var Annotations\Autowired $autowiredAnnotation */
             $autowiredAnnotation = $this->annotationReader->getPropertyAnnotation($reflProp, Autowired::clazz());
             if (!$autowiredAnnotation) {
                 continue;
@@ -233,26 +233,14 @@ class AnnotationsBuilder
             $dereferencedParams[$reflParam->getName()] = null;
         }
                 
-        /* @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter $param */
+        /* @var Annotations\Parameter $param */
         foreach ($constructorParams as $param) {
             if ($param->name == null) {
                 throw new Exception(
                     "Parameter 'name' is required."
                 );
             }
-
-            // TODO externalize
-            $value = null;
-            if ($param->qualifier != null) {
-                $value = new QualifiedReference($param->qualifier);
-            } else if ($param->id != null) {
-                $value = new ServiceReference($param->id);
-            } else {
-                throw new Exception(
-                    sprintf("No 'id' nor 'qualifier' is specified.", $param->name)
-                );
-            }
-            $dereferencedParams[$param->name] = $value;
+            $dereferencedParams[$param->name] = $this->dereferenceConstructorParam($param);
         }
         
         foreach ($dereferencedParams as $paramName=>$value) {
@@ -262,6 +250,21 @@ class AnnotationsBuilder
         }
 
         return array_values($dereferencedParams);
+    }
+
+    protected function dereferenceConstructorParam($param) // TODO make this method as final
+    {
+        if ($param->qualifier != null) {
+            return new QualifiedReference($param->qualifier);
+        } else if ($param->id != null) {
+            return new ServiceReference($param->id);
+        } else {
+            return $this->dereferenceConstructorParam($param);
+        }
+    }
+
+    protected function dereferenceCustomConstructorParam($param)
+    {
     }
 
     /**
