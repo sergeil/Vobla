@@ -21,7 +21,7 @@ class ServiceDefinition
     /**
      * @var string
      */
-    private $factoryMethod = '__construct';
+    private $factoryMethod;
 
     /**
      * @var mixed

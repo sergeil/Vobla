@@ -40,7 +40,7 @@ class DefinitionsHolder
      */
     public function get($id)
     {
-        return $this->contains($id) ? $this->definitions[$id] : nul;
+        return $this->contains($id) ? $this->definitions[$id] : null;
     }
 
     /**

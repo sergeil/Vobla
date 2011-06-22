@@ -38,7 +38,7 @@ class SingletonHandler implements ContextScopeHandler
 
     public function isRegisterResponsible($id, ServiceDefinition $serviceDefinition, $obj)
     {
-        return $serviceDefinition->getScope() == 'singleton';
+        return in_array($serviceDefinition->getScope(), array('singleton', '')); // default scope
     }
 
 }

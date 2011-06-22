@@ -71,6 +71,7 @@ class ObjectFactoryAssemblerTest extends \PHPUnit_Framework_TestCase
         $this->ofa->init($container);
 
         $def = new ServiceDefinition();
+        $def->setFactoryMethod('__construct');
         $def->setClassName(MockWithDefaultConstructor::clazz());
         $def->setConstructorArguments(array(
             new ServiceReference('fooService'),
@@ -142,5 +143,21 @@ class ObjectFactoryAssemblerTest extends \PHPUnit_Framework_TestCase
         $this->assertType(MockWithDefaultConstructor::clazz(), $obj);
         $this->assertEquals('fooService', $obj->foo);
         $this->assertEquals('barService', $obj->bar);
+    }
+
+    public function testExecute_withNoConstructor()
+    {
+        $am = $this->createAssemblersManagerMock();
+        $c = $this->mf->create(Container::clazz())->createMock();
+
+        $this->ofa->init($c);
+
+        $def = new ServiceDefinition();
+        $def->setClassName(MockWithNoConstructor::clazz());
+
+        /* @var \Vobla\ServiceConstruction\Assemblers\MockWithLocalFactory $obj */
+        $obj = $this->ofa->execute($am, $def);
+
+        $this->assertType(MockWithNoConstructor::clazz(), $obj);
     }
 }

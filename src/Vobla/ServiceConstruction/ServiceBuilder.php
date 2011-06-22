@@ -3,7 +3,8 @@
 namespace Vobla\ServiceConstruction;
 
 use Vobla\ServiceConstruction\Assemblers\AssemblersManager,
-    Vobla\Container;
+    Vobla\Container,
+    Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
  * @copyright 2011 Modera Foundation
@@ -26,6 +27,11 @@ class ServiceBuilder
      */
     protected $assemblersManager;
 
+    public function getContainer()
+    {
+        return $this->container;
+    }
+    
     public function init(Container $container)
     {
         $this->container = $container;
@@ -51,8 +57,8 @@ class ServiceBuilder
         return $this->assemblersManager;
     }
 
-    public function process(ServiceDefition $serviceDefinition)
+    public function process(ServiceDefinition $serviceDefinition)
     {
-        $this->getAssemblersManager()->proceed($serviceDefinition);
+        return $this->getAssemblersManager()->proceed($serviceDefinition);
     }
 }

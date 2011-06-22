@@ -11,7 +11,9 @@ use Vobla\Container,
  */ 
 interface AssemblersProvider
 {
+    const CLAZZ = 'Vobla\ServiceConstruction\Assemblers\AssemblersProvider';
+
     public function init(Container $container);
 
-    public function getAssemblers(ServiceDefinition $serviceDefinition);
+    public function getAssemblers();
 }

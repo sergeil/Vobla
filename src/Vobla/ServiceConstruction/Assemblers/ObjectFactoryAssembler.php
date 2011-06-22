@@ -56,7 +56,10 @@ class ObjectFactoryAssembler extends AbstractReferenceWeaverAssembler
 
     protected function createInstance(ServiceDefinition $definition, array $params)
     {
-        if (in_array($definition->getFactoryMethod(), array('__construct', ''))) { // standard stuff
+        if ($definition->getFactoryMethod() == '') {
+            $className = $this->createTargetServiceClassName($definition);
+            return new $className;
+        } else if ($definition->getFactoryMethod() == '__construct') { // standard stuff
             $reflClass = new \ReflectionClass($this->createTargetServiceClassName($definition));
             return $reflClass->newInstanceArgs($params);
         } else { // factory-method
@@ -71,7 +74,7 @@ class ObjectFactoryAssembler extends AbstractReferenceWeaverAssembler
 
     protected function dereferenceConstructorParameters(ServiceDefinition $definition)
     {
-        // TODO validate if number of constructor parametrs provided is right
+        // TODO validate if number of constructor parameters provided is right
 
         $constructorParams = array();
         foreach ($definition->getConstructorArguments() as $arg) {

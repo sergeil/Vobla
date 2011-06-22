@@ -91,7 +91,7 @@ class AnnotationsBuilder
                 $classNames = array(
                     implode('\\', array($reflFile->getNamespace(), $reflFile->getClassName()))
                 );
-                
+
                 require_once $file->getPathname();
 
                 $reflClasses = array();
@@ -126,7 +126,7 @@ class AnnotationsBuilder
      */
     public function processClass($clazz)
     {
-        $reflClass = null;
+        $reflClass = $clazz;
         if (!($clazz instanceof \ReflectionClass)) {
             $reflClass = new \ReflectionClass($clazz);
         }
@@ -142,6 +142,7 @@ class AnnotationsBuilder
         $serviceDef->setAbstract($serviceAnnotation->isAbstract);
         $serviceDef->setArguments($this->processProperties($reflClass));
         $serviceDef->setScope($serviceAnnotation->scope);
+         $serviceDef->setClassName($reflClass->getName());
 
         $isConstructorFound = false;
         foreach ($reflClass->getMethods() as $reflMethod) {
@@ -160,8 +161,11 @@ class AnnotationsBuilder
                 $this->dereferenceConstructorParams($reflMethod, $constructorAnnotation->params)
             );
         }
-
-        return $serviceDef;
+        
+        return array(
+            $serviceAnnotation->id,
+            $serviceDef
+        );
     }
 
     protected function processProperties(\ReflectionClass $reflClass)

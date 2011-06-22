@@ -113,13 +113,13 @@ class Container
             if (!$definition) {
                 throw new ServiceNotFoundException("Unable to find a service '$id'.");
             }
-
+            
             $obj = $this->getServiceBuilder()->process($definition);
 
-            $cx->register($definition, $definition, $obj);
-        } else {
-            return $this->getContext()->dispense($id);
+            $cx->register($id, $obj);
         }
+
+        return $this->getContext()->dispense($id);
     }
 
     public function getServiceByQualifier($qualifier)

@@ -45,9 +45,13 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
     public function testProcessClass()
     {
         /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $definition */
-        $definition = $this->ab->processClass(SomeDumbService::clazz());
-        $this->assertTrue($definition instanceof ServiceDefinition);
+        $result = $this->ab->processClass(SomeDumbService::clazz());
+        $this->assertTrue(is_array($result), 'It is expected that AnnotationBuilder::processClass returns an array as execution result.');
+        $this->assertEquals('someDumbServiceId', $result[0], 'We expected a component to have a different ID.');
+        $this->assertTrue($result[1] instanceof ServiceDefinition);
+        $definition = $result[1];
         $this->assertEquals('fooScope', $definition->getScope());
+        $this->assertEquals(SomeDumbService::clazz(), $definition->getClassName(), 'Class name does not match.');
 
         $args = $definition->getArguments();
         $this->assertTrue(is_array($args));

@@ -28,7 +28,7 @@ class DefaultAssemblersProvider implements AssemblersProvider
     /**
      * @TODO throw an exception if no initialization done yet
      */
-    public function getAssemblers(ServiceDefinition $serviceDefinition)
+    public function getAssemblers()
     {
         return $this->assemblers;
     }

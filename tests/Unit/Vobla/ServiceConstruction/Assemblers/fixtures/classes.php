@@ -2,6 +2,19 @@
 
 namespace Vobla\ServiceConstruction\Assemblers;
 
+class MockWithNoConstructor
+{
+    public $foo;
+
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}
+
 class MockWithDefaultConstructor
 {
     public $foo;
