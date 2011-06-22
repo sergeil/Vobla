@@ -4,6 +4,7 @@ namespace Vobla;
 
 require_once __DIR__.'/../bootstrap.php';
 require_once __DIR__.'/Fixtures/Foo.php';
+require_once __DIR__.'/Fixtures/Bar.php';
 
 use Vobla\Container,
     Vobla\Configuration,
@@ -35,5 +36,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         /* @var FooService $fooService */
         $fooService = $container->getServiceById('fooService');
         $this->assertType('Foo', $fooService);
+        $this->assertType('Bar', $fooService->bar);
+        
     }
 }

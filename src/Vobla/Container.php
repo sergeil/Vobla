@@ -83,6 +83,8 @@ class Container
     public function setConfiguration(Configuration $configuration)
     {
         $this->configuration = $configuration;
+        $configuration->getAssemblersProvider()->init($this);
+        $configuration->getContextScopeHandlersProvider()->init($this);
     }
     
     /**
