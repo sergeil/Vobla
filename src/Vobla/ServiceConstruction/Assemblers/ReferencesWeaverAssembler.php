@@ -43,9 +43,7 @@ class ReferencesWeaverAssembler extends AbstractReferenceWeaverAssembler
     public function execute(AssemblersManager $assemblersManager, ServiceDefinition $definition, $obj = null)
     {
         foreach ($definition->getArguments() as $paramName=>$paramValue) {
-
-            $value = $this->derefenceParameter($paramValue); // TODO not under test!
-
+            $value = $this->derefenceParameter($paramValue);
             $this->getReferenceInjector()->inject($obj, $paramName, $value, $definition);
         }
 
