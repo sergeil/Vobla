@@ -72,6 +72,35 @@ class CompositeContextTest extends \PHPUnit_Framework_TestCase
         return $this->getContainerMockDefinition($sessionScopeHandlers)->createMock();
     }
 
+    public function test_properAssemblersInitialization()
+    {
+        $ser1 = new \stdClass();
+
+        $tc = $this;
+
+        $sh1 = $this->mf->createTestCaseAware(ContextScopeHandler::CLAZZ)->addMethod('init', function() {
+        }, 1)->addMethod('isRegisterResponsible', function() {
+                return true;
+        }, 1)->addMethod('register', function() {
+        }, 1)->createMock();
+        
+        $serviceDef = new ServiceDefinition();
+        $definitionsHolder = $this->mf->createTestCaseAware(DefinitionsHolder::clazz())->addMethod('get', function() use($serviceDef) {
+            return $serviceDef;
+        }, 1)->createMock();
+
+        /* @var \Moko\Integrated\TestCaseAwareMockDefinition $ctrMock */
+        $ctrMock = $this->getContainerMockDefinition(array($sh1));
+        $ctr = $ctrMock->addMethod('getDefinitionsHolder', function() use($definitionsHolder) {
+            return $definitionsHolder;
+        }, 1)->createMock();
+
+        $cx = $this->cx;
+        $cx->init($ctr);
+
+        $cx->register('ser1', $ser1);
+    }
+
     public function testRegister()
     {
         $ser1 = new \stdClass();
@@ -84,12 +113,12 @@ class CompositeContextTest extends \PHPUnit_Framework_TestCase
             $tc->assertEquals('ser1', $id, 'The ID passed to the CompositeContext::isRegisterResponsible() and to one of its ContextScopeHandler are different.');
             $tc->assertSame($obj, $ser1, 'Object passed to the CompositeContext::isRegisterResponsible($id, $obj) and to one of its ContextScopeHandler are different.');
             return true;
-        }, 1, 'sh1')->createMock();
+        }, 1, 'sh1')->addMethod('init', function() {}, 1)->createMock();
 
         $sh2 = $this->mf->createTestCaseAware(ContextScopeHandler::CLAZZ)->addMethod('register', function() {
         }, 0)->addMethod('isRegisterResponsible', function() {
             
-        }, 0, 'sh2')->createMock();
+        }, 0, 'sh2')->addMethod('init', function() {}, 1)->createMock();
 
         $serviceDef = new ServiceDefinition();
         $definitionsHolder = $this->mf->createTestCaseAware(DefinitionsHolder::clazz())->addMethod('get', function() use($serviceDef) {
@@ -117,13 +146,13 @@ class CompositeContextTest extends \PHPUnit_Framework_TestCase
         }, 1)->addMethod('isDispenseResponsible', function($self, $id) use ($tc) {
             $tc->assertEquals('ser1', $id, 'The ID passed to the CompositeContext::isDispenseResponsible() and to one of its ContextScopeHandler are different.');
             return true;
-        }, 1, 'sh1')->createMock();
+        }, 1, 'sh1')->addMethod('init', function() {}, 1)->createMock();
 
         $sh2 = $this->mf->createTestCaseAware(ContextScopeHandler::CLAZZ)->addMethod('dispense', function() {
                 
         }, 0)->addMethod('isDispenseResponsible', function() {
                 
-        }, 0, 'sh2')->createMock();
+        }, 0, 'sh2')->addMethod('init', function() {}, 1)->createMock();
 
         $ctr = $this->createMockContainer(array($sh1, $sh2));
 
@@ -140,10 +169,10 @@ class CompositeContextTest extends \PHPUnit_Framework_TestCase
         $sh1 = $this->mf->createTestCaseAware(ContextScopeHandler::CLAZZ)->addMethod('contains', function($self, $id) use($tc) {
             $tc->assertEquals('fooId', $id);
             return true;
-        }, 1)->createMock();
+        }, 1)->addMethod('init', function() {}, 1)->createMock();
 
         $sh2 = $this->mf->createTestCaseAware(ContextScopeHandler::CLAZZ)->addMethod('contains', function($self, $id) {
-        }, 0)->createMock();
+        }, 0)->addMethod('init', function() {}, 1)->createMock();
 
         $ctr = $this->createMockContainer(array($sh1, $sh2));
 

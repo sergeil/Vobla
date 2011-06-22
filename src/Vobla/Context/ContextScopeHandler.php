@@ -2,7 +2,8 @@
 
 namespace Vobla\Context;
 
-use Vobla\ServiceConstruction\Definition\ServiceDefinition;
+use Vobla\ServiceConstruction\Definition\ServiceDefinition,
+    Vobla\Container;
 
 /**
  * @copyright 2011 Modera Foundation
@@ -21,4 +22,6 @@ interface ContextScopeHandler
     public function register($id, $obj);
 
     public function dispense($id);
+
+    public function init(Container $container);
 }

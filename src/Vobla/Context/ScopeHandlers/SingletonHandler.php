@@ -9,26 +9,26 @@ use Vobla\Context\ContextScopeHandler,
  * @copyright 2011 Modera Foundation
  * @author Sergei Lissovski <sergei.lissovski@modera.net>
  */ 
-class SingletonHandler implements ContextScopeHandler
+class SingletonHandler extends AbstractHandler
 {
     /**
      * @var array
      */
-    protected $objects = array();
+    protected $services = array();
 
     public function dispense($id)
     {
-        return $this->contains($id) ? $this->objects[$id] : null;
+        return $this->contains($id) ? $this->services[$id] : null;
     }
 
     public function register($id, $obj)
     {
-        $this->objects[$id] = $obj;
+        $this->services[$id] = $obj;
     }
 
     public function contains($id)
     {
-        return isset($this->objects[$id]);
+        return isset($this->services[$id]);
     }
 
     public function isDispenseResponsible($id)
@@ -41,4 +41,11 @@ class SingletonHandler implements ContextScopeHandler
         return in_array($serviceDefinition->getScope(), array('singleton', '')); // default scope
     }
 
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
 }

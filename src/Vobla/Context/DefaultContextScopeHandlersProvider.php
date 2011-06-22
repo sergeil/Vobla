@@ -3,7 +3,8 @@
 namespace Vobla\Context;
 
 use \Vobla\Container,
-    Vobla\Context\ScopeHandlers\SingletonHandler;
+    Vobla\Context\ScopeHandlers\SingletonHandler,
+    \Vobla\Context\ScopeHandlers\PrototypeHandler;
 
 /**
  * @copyright 2011 Modera Foundation
@@ -16,7 +17,8 @@ class DefaultContextScopeHandlersProvider implements ContextScopeHandlersProvide
     public function __construct()
     {
         $this->scopeHandlers = array(
-            new SingletonHandler()
+            new SingletonHandler(),
+            new PrototypeHandler()
         );
     }
 

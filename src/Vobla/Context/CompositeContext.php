@@ -48,6 +48,10 @@ class CompositeContext implements Context
                                          ->getConfiguration()
                                          ->getContextScopeHandlersProvider()
                                          ->getContextScopeHandlers();
+
+            foreach ($this->cachedHandlers as $scopeHandler) {
+                $scopeHandler->init($this->getContainer());
+            }
         }
 
         return $this->cachedHandlers;
