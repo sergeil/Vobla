@@ -101,13 +101,10 @@ class AnnotationsBuilder
 
                 foreach ($reflClasses as $reflClass) { // let it be that a file may contain several class declarations
                     $data = $this->processClass($reflClass);
-
                     if (is_array($data)) {
-//                        $container->getDefinitionsHolder()->register(
-//                            $data[0],
-//                            $data[1] // don't get confused, we will be using a reference to the same object later
-//                        );
                         $container->addServiceDefinition($data[0], $data[1]);
+                    } else {
+                        $skippedFiles[] = $file->getFilename();
                     }
                 }
             } catch (\Exception $e) {
@@ -123,7 +120,7 @@ class AnnotationsBuilder
      *
      * @throws Exception
      * @param string|ReflectionClass $reflClass
-     * @return bool|ServiceDefinition
+     * @return false|ServiceDefinition  If class doesn't contain a service or for some reason it is not possible to process a class
      */
     public function processClass($clazz)
     {
@@ -164,12 +161,15 @@ class AnnotationsBuilder
             );
         }
 
-        $serviceId = $serviceAnnotation->id ? $serviceAnnotation->id : $reflClass->getName().'_'.spl_object_hash($serviceDef);
         return array(
-            $serviceId,
-            //$serviceAnnotation->id,
+            $this->generateServiceId($reflClass, $serviceAnnotation, $serviceDef),
             $serviceDef
         );
+    }
+
+    protected function generateServiceId(\ReflectionClass $reflClass, $serviceAnnotation, ServiceDefinition $serviceDef)
+    {
+        return $serviceAnnotation->id ? $serviceAnnotation->id : $reflClass->getName().'_'.spl_object_hash($serviceDef);
     }
 
     protected function processProperties(\ReflectionClass $reflClass)

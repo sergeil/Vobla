@@ -67,8 +67,6 @@ class SomeDumbService extends SomeFooService
 
 /**
  * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
- *
- * @/FactoryService(id="", class="", method="", params="")
  */
 class ClassWithTwoConstructors
 {
@@ -88,6 +86,17 @@ class ClassWithTwoConstructors
         
     }
 
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}
+
+/**
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ */
+class ClassWithNoId
+{
     static public function clazz()
     {
         return get_called_class();

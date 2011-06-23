@@ -123,6 +123,12 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
         $this->ab->processClass(ClassWithTwoConstructors::clazz());
     }
 
+    public function testProcessClassWithNoId()
+    {
+        $result = $this->ab->processClass(ClassWithNoId::clazz());
+        $this->assertNotNull($result[0], 'Id of a component should never be empty, it must have been generated automatically in case when it is not defined explicitly.');
+    }
+
     public function testConfigure()
     {
         $tc = $this;
@@ -176,7 +182,9 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
     public function testProcessPath()
     {
         $tc = $this;
-        $c = $this->mf->create(Container::clazz())->createMock();
+        $c = $this->mf->createTestCaseAware(Container::clazz())
+        ->addMethod('addServiceDefinition', function() {}, 2)
+        ->createMock();
 
         $classNames = array();
 
@@ -185,22 +193,23 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
             $tc->assertType('ReflectionClass', $argReflClass);
 
             $classNames[] = $argReflClass->getName();
+
+            return array('foo', new ServiceDefinition());
         }, 2)->addDelegateMethod('processPath', 1)->createMock();
 
         $result = $ab->processPath($c, __DIR__.'/fixtures/DirectoryToScan');
-        $this->assertTrue(is_array($result));
+        $this->assertTrue(is_array($result)); // skippedClasses
 
         $this->assertEquals(2, sizeof($classNames));
 
         $this->assertTrue(in_array(
             'Vobla\ServiceConstruction\Builders\AnnotationsBuilder\TopClass',
-                $classNames
-        ), 'We were not able to find and introspect requried class "Vobla\ServiceConstruction\Builders\AnnotationsBuilder\TopClass".');
+            $classNames
+        ), 'We were not able to find and introspect required class "Vobla\ServiceConstruction\Builders\AnnotationsBuilder\TopClass".');
 
         $this->assertTrue(in_array(
             'Vobla\ServiceConstruction\Builders\AnnotationsBuilder\SubA\SubB\BurriedClass',
             $classNames
-        ), 'We were not able to find and introspect requried class "Vobla\ServiceConstruction\Builders\AnnotationsBuilder\SubA\SubB\BurriedClass".');
-
+        ), 'We were not able to find and introspect required class "Vobla\ServiceConstruction\Builders\AnnotationsBuilder\SubA\SubB\BurriedClass".');
     }
 }
