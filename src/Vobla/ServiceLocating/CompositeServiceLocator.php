@@ -34,7 +34,7 @@ class CompositeServiceLocator extends AbstractServiceLocator
     {
         foreach ($this->cachedLocators as $locator) {
             $result = $locator->locate($criteria);
-            if ($result !== null) {
+            if ($result !== false) {
                 return $result;
             }
         }

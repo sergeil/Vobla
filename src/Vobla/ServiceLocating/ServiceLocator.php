@@ -17,12 +17,12 @@ interface ServiceLocator
 
     /**
      * @param mixed $criteria
-     * @return void
+     * @return string|false  Id of a service of FALSE
      */
     public function locate($criteria);
 
     /**
-     *
+     * Here you are able to analyze service definition and store it for further lookup.
      */
     public function analyze($id, ServiceDefinition $serviceDefinition);
 }

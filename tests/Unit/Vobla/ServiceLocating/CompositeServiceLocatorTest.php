@@ -89,6 +89,8 @@ class CompositeServiceLocatorTest extends \PHPUnit_Framework_TestCase
                 $argCriteria,
                 'CompositeServiceLocator should pass the same instance of criteria to all aggregated locators.'
             );
+
+            return false;
         };
         $clkReturn = function($self, $argCriteria) use($tc, $criteria) {
             $tc->assertSame(
