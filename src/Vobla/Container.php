@@ -5,7 +5,10 @@ namespace Vobla;
 use Vobla\ServiceConstruction\ServiceBuilder,
     Vobla\ServiceConstruction\DefinitionsHolder,
     Vobla\Context\CompositeContext,
-    Vobla\Context\Context;
+    Vobla\Context\Context,
+    Vobla\ServiceLocating\DefaultImpls\QualifierServiceLocator,
+    Vobla\ServiceLocating\CompositeServiceLocator,
+    Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
  * @copyright 2011 Modera Foundation
@@ -29,6 +32,11 @@ class Container
     protected $definitionsHolder;
 
     /**
+     * @var \Vobla\ServiceLocating\ServiceLocator
+     */
+    protected $serviceLocator;
+
+    /**
      * @var \Vobla\Configuration
      */
     protected $configuration;
@@ -41,6 +49,7 @@ class Container
     
     public function setContext(Context $context)
     {
+        $context->init($this);
         $this->context = $context;
     }
 
@@ -72,6 +81,7 @@ class Container
      */
     public function setServiceBuilder(ServiceBuilder $serviceBuilder)
     {
+        $serviceBuilder->init($this);
         $this->serviceBuilder = $serviceBuilder;
     }
 
@@ -80,11 +90,31 @@ class Container
         $this->definitionsHolder = $definitionsHolder;
     }
 
+    public function setServiceLocator($serviceLocator)
+    {
+        $serviceLocator->init($this);
+        $this->serviceLocator = $serviceLocator;
+    }
+
+    /**
+     * @return \Vobla\ServiceLocating\ServiceLocator
+     */
+    public function getServiceLocator()
+    {
+        if (null === $this->serviceLocator) {
+            $this->serviceLocator = new CompositeServiceLocator();
+            $this->serviceLocator->init($this);
+        }
+
+        return $this->serviceLocator;
+    }
+
     public function setConfiguration(Configuration $configuration)
     {
         $this->configuration = $configuration;
         $configuration->getAssemblersProvider()->init($this);
         $configuration->getContextScopeHandlersProvider()->init($this);
+        $configuration->getServiceLocatorsProvider()->init($this);
     }
     
     /**
@@ -106,6 +136,12 @@ class Container
 
         return $this->definitionsHolder;
     }
+
+    public function addServiceDefinition($id, ServiceDefinition $serviceDefinition)
+    {
+        $this->getDefinitionsHolder()->register($id, $serviceDefinition);
+        $this->getServiceLocator()->analyze($id, $serviceDefinition);
+    }
         
     public function getServiceById($id)
     {
@@ -126,9 +162,15 @@ class Container
 
     public function getServiceByQualifier($qualifier)
     {
-        // TODO
+        $id = $this->getServiceLocator()->locate(QualifierServiceLocator::createCriteria($qualifier));
+        if (false !== $id) {
+            return $this->getServiceById($id);
+        }
+        
+        throw new ServiceNotFoundException("Unable to find a service by qualifier '$qualifier'.");
+
     }
-    
+        
     static public function clazz()
     {
         return get_called_class();

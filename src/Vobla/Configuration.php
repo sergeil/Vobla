@@ -26,6 +26,11 @@ class Configuration
     protected $contextScopeHandlersProvider;
 
     /**
+     * @var \Vobla\ServiceLocating\ServiceLocatorsProvider
+     */
+    protected $serviceLocatorsProvider;
+
+    /**
      * @param \Vobla\ServiceConstruction\Assemblers\AssemblersProvider $assemblersProvider
      */
     public function setAssemblersProvider(AssemblersProvider $assemblersProvider)
@@ -71,6 +76,19 @@ class Configuration
     public function getDefinitionProcessorsProvider()
     {
         return $this->definitionProcessorsProvider;
+    }
+
+    public function setServiceLocatorsProvider($serviceLocatorsProvider)
+    {
+        $this->serviceLocatorsProvider = $serviceLocatorsProvider;
+    }
+
+    /**
+     * @return ServiceLocating\ServiceLocatorsProvider
+     */
+    public function getServiceLocatorsProvider()
+    {
+        return $this->serviceLocatorsProvider;
     }
 
     public function validate()

@@ -52,6 +52,7 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
         $definition = $result[1];
         $this->assertEquals('fooScope', $definition->getScope());
         $this->assertEquals(SomeDumbService::clazz(), $definition->getClassName(), 'Class name does not match.');
+        $this->assertEquals('fooQualifier', $definition->getQualifier(), 'Qualifier doesn\'t match.');
 
         $args = $definition->getArguments();
         $this->assertTrue(is_array($args));

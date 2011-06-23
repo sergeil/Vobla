@@ -103,10 +103,11 @@ class AnnotationsBuilder
                     $data = $this->processClass($reflClass);
 
                     if (is_array($data)) {
-                        $container->getDefinitionsHolder()->register(
-                            $data[0],
-                            $data[1] // don't get confused, we will be using a reference to the same object later
-                        );
+//                        $container->getDefinitionsHolder()->register(
+//                            $data[0],
+//                            $data[1] // don't get confused, we will be using a reference to the same object later
+//                        );
+                        $container->addServiceDefinition($data[0], $data[1]);
                     }
                 }
             } catch (\Exception $e) {
@@ -134,7 +135,7 @@ class AnnotationsBuilder
         $serviceDef = new ServiceDefinition();
         $args = $constructorArgs = array();
 
-        /* @var Service $serviceAnnotation */
+        /* @var Annotations\Service $serviceAnnotation */
         $serviceAnnotation = $this->annotationReader->getClassAnnotation($reflClass, Service::clazz());
         if (!$serviceAnnotation) { // not a service, skipping
             return false;
@@ -143,6 +144,7 @@ class AnnotationsBuilder
         $serviceDef->setArguments($this->processProperties($reflClass));
         $serviceDef->setScope($serviceAnnotation->scope);
         $serviceDef->setClassName($reflClass->getName());
+        $serviceDef->setQualifier($serviceAnnotation->qualifier);
 
         $isConstructorFound = false;
         foreach ($reflClass->getMethods() as $reflMethod) {
@@ -161,9 +163,11 @@ class AnnotationsBuilder
                 $this->dereferenceConstructorParams($reflMethod, $constructorAnnotation->params)
             );
         }
-        
+
+        $serviceId = $serviceAnnotation->id ? $serviceAnnotation->id : $reflClass->getName().'_'.spl_object_hash($serviceDef);
         return array(
-            $serviceAnnotation->id,
+            $serviceId,
+            //$serviceAnnotation->id,
             $serviceDef
         );
     }

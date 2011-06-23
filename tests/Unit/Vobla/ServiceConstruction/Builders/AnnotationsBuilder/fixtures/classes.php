@@ -27,7 +27,7 @@ class SomeFooService extends SomeBarService
 }
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(id="someDumbServiceId", scope="fooScope")
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(id="someDumbServiceId", scope="fooScope", qualifier="fooQualifier")
  */
 class SomeDumbService extends SomeFooService
 {

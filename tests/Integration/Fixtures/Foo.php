@@ -9,5 +9,10 @@ class Foo
      * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(id="barService")
      */
     public $bar;
+
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(qualifier="foobarQlr")
+     */
+    public $foobar;
 }
  

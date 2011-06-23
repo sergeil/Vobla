@@ -12,6 +12,8 @@ class Service extends Annotation
 {
     public $id;
 
+    public $qualifier;
+
     public $isAbstract = false;
 
     public $scope;
