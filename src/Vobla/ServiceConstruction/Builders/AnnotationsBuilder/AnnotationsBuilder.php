@@ -2,19 +2,12 @@
 
 namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder;
 
-use Doctrine\Common\Annotations\AnnotationReader,
-    Vobla\Container,
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Vobla\ServiceConstruction\Definition\ServiceReference,
-    Vobla\ServiceConstruction\Definition\QualifiedReference,
-    Vobla\Exception;
-
-use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\ConstructorParamQualifier,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Reference,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service;
+    Doctrine\Common\Annotations\AnnotationReader,
+    Vobla\ServiceConstruction\Builders\ServiceIdGenerator,
+    Vobla\Container,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ScanPathsProvider;
 
 /**
  * @copyright 2011 Modera Foundation
@@ -28,14 +21,24 @@ class AnnotationsBuilder
     protected $annotationReader;
 
     /**
-     * @var array
+     * @var \Vobla\ServiceConstruction\Builders\ServiceIdGenerator
      */
-    protected $eligibleFileTypes = array('php');
+    protected $serviceIdGenerator;
+
+    /**
+     * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ProcessorsProvider
+     */
+    protected $processorsProvider;
 
     /**
      * @var array
      */
     protected $scanPathsProviders = array();
+
+    /**
+     * @var array
+     */
+    protected $eligibleFileTypes = array('php');
 
     /**
      * @return array
@@ -51,23 +54,87 @@ class AnnotationsBuilder
         $this->scanPathsProviders[] = $scanPathProvider;
     }
 
-    public function __construct(AnnotationReader $annotationReader)
+    /**
+     * @var array
+     */
+    protected $cachedProcessors;
+
+    public function __construct($processorsProvider = null)
+    {
+        if (null === $processorsProvider) {
+            $this->processorsProvider = new DefaultProcessorsProvider();
+        } else {
+            $this->processorsProvider = $processorsProvider;
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Annotations\AnnotationReader $annotationReader
+     */
+    public function setAnnotationReader($annotationReader)
     {
         $this->annotationReader = $annotationReader;
     }
 
     /**
-     * @return array  Filenames we were not able to process
+     * @return \Doctrine\Common\Annotations\AnnotationReader
      */
-    public function configure(Container $container)
+    public function getAnnotationReader()
     {
-        $skippedFiles = array();
-        foreach ($this->getScanPathsProviders() as $pathsProvider) {
-            foreach ($pathsProvider->getScanPaths($container) as $path) {
-                $skippedFiles = array_merge($skippedFiles, $this->processPath($container, $path));
-            }
+        if (null === $this->annotationReader) {
+            $this->annotationReader = new AnnotationReader();
         }
-        return $skippedFiles;
+
+        return $this->annotationReader;
+    }
+
+    public function setServiceIdGenerator($serviceIdGenerator)
+    {
+        $this->serviceIdGenerator = $serviceIdGenerator;
+    }
+
+    /**
+     * @return \Vobla\ServiceConstruction\Builders\ServiceIdGenerator
+     */
+    public function getServiceIdGenerator()
+    {
+        if (null === $this->serviceIdGenerator) {
+            $this->serviceIdGenerator = new ServiceIdGenerator();
+        }
+
+        return $this->serviceIdGenerator;
+    }
+
+    public function getProcessors()
+    {
+        if (null === $this->cachedProcessors) {
+            $this->cachedProcessors = $this->processorsProvider->getProcessors();
+
+            // TODO throw an exception if no processors provided
+        }
+
+        return $this->cachedProcessors;
+    }
+    
+    public function processClass($clazz)
+    {
+        $reflClass = $clazz instanceof \ReflectionClass ? $clazz : new \ReflectionClass($clazz);
+
+        $serviceAnnotation = $this->getAnnotationReader()->getClassAnnotation($reflClass, Service::clazz());
+        if (!$serviceAnnotation) {
+            return false;
+        }
+
+        $definition = new ServiceDefinition();
+        foreach ($this->getProcessors() as $processor) {
+            $processor->handle($this->getAnnotationReader(), $reflClass, $definition);
+        }
+
+        $serviceId = $this->getServiceIdGenerator()->generate($reflClass, $serviceAnnotation->id, $definition);
+        return array(
+            $serviceId,
+            $definition
+        );
     }
 
     /**
@@ -116,159 +183,17 @@ class AnnotationsBuilder
     }
 
     /**
-     * TODO: add support for parents scanning
-     *
-     * @throws Exception
-     * @param string|ReflectionClass $reflClass
-     * @return false|ServiceDefinition  If class doesn't contain a service or for some reason it is not possible to process a class
+     * @return array  Filenames we were not able to process
      */
-    public function processClass($clazz)
+    public function configure(Container $container)
     {
-        $reflClass = $clazz;
-        if (!($clazz instanceof \ReflectionClass)) {
-            $reflClass = new \ReflectionClass($clazz);
-        }
-
-        $serviceDef = new ServiceDefinition();
-        $args = $constructorArgs = array();
-
-        /* @var Annotations\Service $serviceAnnotation */
-        $serviceAnnotation = $this->annotationReader->getClassAnnotation($reflClass, Service::clazz());
-        if (!$serviceAnnotation) { // not a service, skipping
-            return false;
-        }
-        $serviceDef->setAbstract($serviceAnnotation->isAbstract);
-        $serviceDef->setArguments($this->processProperties($reflClass));
-        $serviceDef->setScope($serviceAnnotation->scope);
-        $serviceDef->setClassName($reflClass->getName());
-        $serviceDef->setQualifier($serviceAnnotation->qualifier);
-
-        $isConstructorFound = false;
-        foreach ($reflClass->getMethods() as $reflMethod) {
-            /* @var Constructor $constructorAnnotation */
-            $constructorAnnotation = $this->annotationReader->getMethodAnnotation($reflMethod, Constructor::clazz());
-            if (!$constructorAnnotation) {
-                continue;
-            } else if ($isConstructorFound) {
-                // TODO throw a proper exception
-                throw new Exception(sprintf('Multiple constructors defined in class %s', $reflClass->getName()));
-            }
-
-            $isConstructorFound = true;
-            $serviceDef->setFactoryMethod($reflMethod->getName());
-            $serviceDef->setConstructorArguments(
-                $this->dereferenceConstructorParams($reflMethod, $constructorAnnotation->params)
-            );
-        }
-
-        return array(
-            $this->generateServiceId($reflClass, $serviceAnnotation, $serviceDef),
-            $serviceDef
-        );
-    }
-
-    protected function generateServiceId(\ReflectionClass $reflClass, $serviceAnnotation, ServiceDefinition $serviceDef)
-    {
-        return $serviceAnnotation->id ? $serviceAnnotation->id : $reflClass->getName().'_'.spl_object_hash($serviceDef);
-    }
-
-    protected function processProperties(\ReflectionClass $reflClass)
-    {
-        $result = $serviceClasses = array();
-        foreach ($reflClass->getProperties() as $reflProp) {
-            $reflDeclaredClass = $reflProp->getDeclaringClass();
-            if (!in_array($reflDeclaredClass->getName(), $serviceClasses)) {
-                $serviceAnnotation = $this->annotationReader->getClassAnnotation($reflDeclaredClass, Service::clazz());
-                if ($serviceAnnotation) {
-                    $serviceClasses[] = $reflDeclaredClass->getName();
-                }
-            }
-
-            // if a declared class doesn't have Service annotation skipping its properties
-            if (!in_array($reflDeclaredClass->getName(), $serviceClasses)) {
-                continue;
-            }
-
-            /* @var Annotations\Autowired $autowiredAnnotation */
-            $autowiredAnnotation = $this->annotationReader->getPropertyAnnotation($reflProp, Autowired::clazz());
-            if (!$autowiredAnnotation) {
-                continue;
-            }
-
-            $refDef = null;
-            if ($autowiredAnnotation->qualifier !== null) { // qualifier has priority
-                $refDef = new QualifiedReference($autowiredAnnotation->qualifier);
-            } else {
-                $refServiceId = $autowiredAnnotation->id === null ? $reflProp->getName() : $autowiredAnnotation->id;
-                $refDef = new ServiceReference($refServiceId);
-            }
-
-            $result[$reflProp->getName()] = $refDef;
-        }
-        
-        return $result;
-    }
-
-    protected function dereferenceConstructorParams(\ReflectionMethod $reflMethod, array $constructorParams)
-    {
-        try {
-            return $this->doDereferenceConstructorParams($reflMethod, $constructorParams);
-        } catch (Exception $e) {
-            throw new Exception(
-                sprintf(
-                    'Failed to process annotations for constructor method %s::%s".',
-                    $reflMethod->getDeclaringClass()->getName(),
-                    $reflMethod->getName()
-                )
-            );
-        }
-    }
-
-    /**
-     * Override this method if you want to introduce some more annotations
-     *
-     * @param array $constructorParams
-     * @return array
-     */
-    protected function doDereferenceConstructorParams(\ReflectionMethod $reflMethod, array $constructorParams)
-    {
-        $dereferencedParams = array();
-        foreach ($reflMethod->getParameters() as $reflParam) {
-            $dereferencedParams[$reflParam->getName()] = null;
-        }
-                
-        /* @var Annotations\Parameter $param */
-        foreach ($constructorParams as $param) {
-            if ($param->name == null) {
-                throw new Exception(
-                    "Parameter 'name' is required."
-                );
-            }
-            $dereferencedParams[$param->name] = $this->dereferenceConstructorParam($param);
-        }
-        
-        foreach ($dereferencedParams as $paramName=>$value) {
-            if ($value === null) {
-                $dereferencedParams[$paramName] = new ServiceReference($paramName);
+        $skippedFiles = array();
+        foreach ($this->getScanPathsProviders() as $pathsProvider) {
+            foreach ($pathsProvider->getScanPaths($container) as $path) {
+                $skippedFiles = array_merge($skippedFiles, $this->processPath($container, $path));
             }
         }
-
-        return array_values($dereferencedParams);
-    }
-
-    protected function dereferenceConstructorParam($param) // TODO make this method as final
-    {
-        if ($param->qualifier != null) {
-            return new QualifiedReference($param->qualifier);
-        } else if ($param->id != null) {
-            return new ServiceReference($param->id);
-        } else {
-            return $this->dereferenceConstructorParam($param);
-        }
-    }
-
-    protected function dereferenceCustomConstructorParam($param)
-    {
+        return $skippedFiles;
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
+namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder; // TODO
 
 use Vobla\Container;
 

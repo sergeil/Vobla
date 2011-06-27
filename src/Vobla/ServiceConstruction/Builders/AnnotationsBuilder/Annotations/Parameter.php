@@ -15,4 +15,12 @@ class Parameter extends Annotation
     public $qualifier;
 
     public $id;
+
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
 }

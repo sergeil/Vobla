@@ -31,10 +31,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
         $container = new Container($cfg);
 
-        $ar = new AnnotationReader();
-        $ar->setAutoloadAnnotations(true);
-
-        $ab = new AnnotationsBuilder($ar);
+        $ab = new AnnotationsBuilder();
         $ab->processPath($container, __DIR__.'/Fixtures');
 
         /* @var FooService $fooService */

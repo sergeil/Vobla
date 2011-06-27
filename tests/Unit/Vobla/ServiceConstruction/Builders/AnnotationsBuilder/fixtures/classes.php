@@ -102,3 +102,16 @@ class ClassWithNoId
         return get_called_class();
     }
 }
+
+// ----
+
+/**
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ */
+class SomeClassForAnnotationReader
+{
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}

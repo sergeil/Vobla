@@ -15,7 +15,9 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Definition\ServiceReference,
     Vobla\ServiceConstruction\Definition\QualifiedReference,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ScanPathsProvider;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ScanPathsProvider,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\Processor,
+    Vobla\ServiceConstruction\Builders\ServiceIdGenerator;
 
 /**
  * @copyright 2011 Modera Foundation
@@ -36,97 +38,115 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->mf = new MockFactory($this);
+    }
 
-        $ar = new AnnotationReader();
-        $ar->setAutoloadAnnotations(true);
-        $this->ab = new AnnotationsBuilder($ar);
+    public function tearDown()
+    {
+        $this->mf = null;
+    }
+
+    public function test_defaultGetters()
+    {
+        $ab = new AnnotationsBuilder();
+
+        $this->assertType(
+            'Doctrine\Common\Annotations\AnnotationReader',
+            $ab->getAnnotationReader(),
+            'Even if no AnnotationReader is explicitly provided a default one must be created on first request.'
+        );
+
+        $this->assertType(
+            ServiceIdGenerator::clazz(),
+            $ab->getServiceIdGenerator(),
+            'Even if no default ServiceIdGenerator is provided a default one must be created upon a first request'
+        );
     }
 
     public function testProcessClass()
     {
-        /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $definition */
-        $result = $this->ab->processClass(SomeDumbService::clazz());
-        $this->assertTrue(is_array($result), 'It is expected that AnnotationBuilder::processClass returns an array as execution result.');
-        $this->assertEquals('someDumbServiceId', $result[0], 'We expected a component to have a different ID.');
-        $this->assertTrue($result[1] instanceof ServiceDefinition);
-        $definition = $result[1];
-        $this->assertEquals('fooScope', $definition->getScope());
-        $this->assertEquals(SomeDumbService::clazz(), $definition->getClassName(), 'Class name does not match.');
-        $this->assertEquals('fooQualifier', $definition->getQualifier(), 'Qualifier doesn\'t match.');
+        $tc = $this;
+        $annotationReader = new AnnotationReader();
+        $reflTarget = new \ReflectionClass(SomeClassForAnnotationReader::clazz());
 
-        $args = $definition->getArguments();
-        $this->assertTrue(is_array($args));
+        $p1 = $this->mf->createTestCaseAware(Processor::CLAZZ)->addMethod('handle', function($self, $argAnnotationReader, $argReflTarget, $argDef) use($tc, $reflTarget, $annotationReader) {
+            $tc->assertSame($annotationReader, $argAnnotationReader);
+            $tc->assertSame($reflTarget, $argReflTarget);
+            $tc->assertType(ServiceDefinition::clazz(), $argDef);
+        }, 1)->createMock();
+        $p2 = $this->mf->createTestCaseAware(Processor::CLAZZ)->addMethod('handle', function() {}, 1)->createMock();
+        $processors = array($p1, $p2);
 
-        if (sizeof($args) == 3) {
-            $this->fail('It seems that annotations from parent class were not taken into account.');
-        } else if (sizeof($args) == 5) {
-            $this->fail(
-                'It looks that annotations from a parent class were taken into account nevertheless the fact it doesn\'t have Service annotation.'
-            );
-        } else {
-            $this->assertEquals(4, sizeof($args), 'Declared service references were not collected properly.');
-        }
-
-        $this->assertTrue(isset($args['ref1x']));
-        $this->assertType(ServiceReference::clazz(), $args['ref1x']);
-        $this->assertEquals('ref1x', $args['ref1x']->getServiceId());
-
-        $this->assertTrue(isset($args['ref2x']));
-        $this->assertType(ServiceReference::clazz(), $args['ref2x']);
-        $this->assertEquals('barbaz', $args['ref2x']->getServiceId());
+        $processorsProvider = $this->mf->createTestCaseAware(ProcessorsProvider::CLAZZ)->addMethod('getProcessors', function() use($processors){
+            return $processors;
+        }, 1)->createMock();
         
-        $this->assertTrue(isset($args['ref3x']));
+        $serviceIdGenerator = $this->mf->createTestCaseAware(ServiceIdGenerator::clazz())->addMethod('generate', function() {
+            return 'some-unique-id';
+        }, 1)->createMock();
+
+        $ab = new AnnotationsBuilder($processorsProvider);
+        $ab->setAnnotationReader($annotationReader);
+        $ab->setServiceIdGenerator($serviceIdGenerator);
+
+        $result = $ab->processClass($reflTarget);
+        $this->assertTrue(
+            is_array($result),
+            sprintf(
+                'Result of successful parsing of a class by %s::processClass must be an array.',
+                AnnotationsBuilder::clazz(), ServiceDefinition::clazz()
+            )
+        );
+        $this->assertEquals(
+            2,
+            sizeof($result),
+            'Result of successful parsing of a class by %s::processClass must be an array where first index is ID of a service and second is an instance of %s '
+        );
+        $this->assertEquals(
+            'some-unique-id',
+            $result[0]
+        );
         $this->assertType(
-            QualifiedReference::clazz(),
-            $args['ref3x'],
+            ServiceDefinition::clazz(),
+            $result[1],
             sprintf(
-                'When parameter "qualifier" of annotation "%s" is provided an instance of "%s" must be injected in "%s".',
-                Autowired::clazz(), QualifiedReference::clazz(), ServiceDefinition::clazz()
-            )
-        );
-        $this->assertEquals('booz', $args['ref3x']->getQualifier());
-
-        $this->assertEquals(
-            'fooFactory',
-            $definition->getFactoryMethod(),
-            sprintf(
-                "For some reason '%s' annotation was ignored on %s::%s",
-                Constructor::clazz(), SomeDumbService::clazz(), 'factoryMethod'
-            )
-        );
-
-        $cArgs = $definition->getConstructorArguments();
-        $this->assertEquals(3, sizeof($cArgs), "Constructor parameters count is wrong.");
-
-        $this->assertTrue($cArgs[0] instanceof QualifiedReference);
-        $this->assertEquals('fooQfr', $cArgs[0]->getQualifier(), "Qualifier parameter for constructor's method wasn't take into account.");
-
-        $this->assertTrue($cArgs[1] instanceof ServiceReference);
-        $this->assertEquals('bService', $cArgs[1]->getServiceId(), "Parameter without explicitely specified 'name' wasn't registered properly.");
-
-        $this->assertTrue($cArgs[2] instanceof ServiceReference);
-        $this->assertEquals(
-            'megaCService',
-            $cArgs[2]->getServiceId(),
-            sprintf(
-                "'id' parameter for third parameter of %s::%s factory-method hasn't been properly treated.",
-                SomeDumbService::clazz(), 'fooFactory'
+                'Second element of returned by %s::processClass must be an instance of %s.',
+                AnnotationsBuilder::clazz(), ServiceDefinition::clazz()
             )
         );
     }
-
-    /**
-     * @expectedException \Vobla\Exception
-     */
-    public function testProcessClassWithTwoConstructors()
+    
+    public function testProcessPath()
     {
-        $this->ab->processClass(ClassWithTwoConstructors::clazz());
-    }
+        $tc = $this;
+        $c = $this->mf->createTestCaseAware(Container::clazz())
+        ->addMethod('addServiceDefinition', function() {}, 2)
+        ->createMock();
 
-    public function testProcessClassWithNoId()
-    {
-        $result = $this->ab->processClass(ClassWithNoId::clazz());
-        $this->assertNotNull($result[0], 'Id of a component should never be empty, it must have been generated automatically in case when it is not defined explicitly.');
+        $classNames = array();
+
+        /* @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder $ab */
+        $ab = $this->mf->createTestCaseAware(AnnotationsBuilder::clazz())->addMethod('processClass', function($self, $argReflClass) use(&$classNames, $tc) {
+            $tc->assertType('ReflectionClass', $argReflClass);
+
+            $classNames[] = $argReflClass->getName();
+
+            return array('foo', new ServiceDefinition());
+        }, 2)->addDelegateMethod('processPath', 1)->createMock();
+
+        $result = $ab->processPath($c, __DIR__.'/fixtures/DirectoryToScan');
+        $this->assertTrue(is_array($result)); // skippedClasses
+
+        $this->assertEquals(2, sizeof($classNames));
+
+        $this->assertTrue(in_array(
+            'Vobla\ServiceConstruction\Builders\AnnotationsBuilder\TopClass',
+            $classNames
+        ), 'We were not able to find and introspect required class "Vobla\ServiceConstruction\Builders\AnnotationsBuilder\TopClass".');
+
+        $this->assertTrue(in_array(
+            'Vobla\ServiceConstruction\Builders\AnnotationsBuilder\SubA\SubB\BurriedClass',
+            $classNames
+        ), 'We were not able to find and introspect required class "Vobla\ServiceConstruction\Builders\AnnotationsBuilder\SubA\SubB\BurriedClass".');
     }
 
     public function testConfigure()
@@ -168,7 +188,7 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
             $processedPaths[] = $argPath;
             return array();
             }, 4)->addDelegateMethod('configure', 1)->createMock();
-        
+
         $result = $ab->configure($container);
         $this->assertTrue(is_array($result));
 
@@ -177,39 +197,5 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
             $processedPaths,
             sprintf('AnnotationBuilder::processPath was not invoked with expected parameters.')
         );
-    }
-
-    public function testProcessPath()
-    {
-        $tc = $this;
-        $c = $this->mf->createTestCaseAware(Container::clazz())
-        ->addMethod('addServiceDefinition', function() {}, 2)
-        ->createMock();
-
-        $classNames = array();
-
-        /* @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder $ab */
-        $ab = $this->mf->createTestCaseAware(AnnotationsBuilder::clazz())->addMethod('processClass', function($self, $argReflClass) use(&$classNames, $tc) {
-            $tc->assertType('ReflectionClass', $argReflClass);
-
-            $classNames[] = $argReflClass->getName();
-
-            return array('foo', new ServiceDefinition());
-        }, 2)->addDelegateMethod('processPath', 1)->createMock();
-
-        $result = $ab->processPath($c, __DIR__.'/fixtures/DirectoryToScan');
-        $this->assertTrue(is_array($result)); // skippedClasses
-
-        $this->assertEquals(2, sizeof($classNames));
-
-        $this->assertTrue(in_array(
-            'Vobla\ServiceConstruction\Builders\AnnotationsBuilder\TopClass',
-            $classNames
-        ), 'We were not able to find and introspect required class "Vobla\ServiceConstruction\Builders\AnnotationsBuilder\TopClass".');
-
-        $this->assertTrue(in_array(
-            'Vobla\ServiceConstruction\Builders\AnnotationsBuilder\SubA\SubB\BurriedClass',
-            $classNames
-        ), 'We were not able to find and introspect required class "Vobla\ServiceConstruction\Builders\AnnotationsBuilder\SubA\SubB\BurriedClass".');
     }
 }
