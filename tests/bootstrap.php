@@ -5,7 +5,6 @@ if (!defined('VOBLA_TESTING')) {
         realpath(__DIR__.'/../src/'),
         realpath(__DIR__.'/../src/vendor/Doctrine/lib/'),
         realpath(__DIR__.'/../src/vendor/Moko/src/'),
-        realpath(__DIR__.'/../src/vendor/Zend/src/'),
         get_include_path()
     )));
 

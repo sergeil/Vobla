@@ -106,16 +106,7 @@ class ServiceProcessor implements Processor
                 continue; // TODO add an extension point here
             }
 
-            $value = $this->parseArrayEl($elXml);
-
-//            $elAttrsXml = $elXml->attributes();
-//            if (isset($elAttrsXml['index'])) {
-//                $result[(string)$elAttrsXml['index']] = $value;
-//            } else {
-//                $result[] = $value;
-//            }
-
-            $result = array_merge($result, $value);
+            $result = array_merge($result, $this->parseArrayEl($elXml));
         }
         return $result;
     }
@@ -311,58 +302,6 @@ class ServiceProcessor implements Processor
     {
         return $this->parseRef($refXml);
     }
-
-//    public function parseServiceParametersPropertyChildArrayElTag(\SimpleXMLElement $elXml)
-//    {
-//        $elAttrsXml = $elXml->attributes();
-//        $result = array();
-//
-//        $index = isset($elAttrsXml['index']) ? (string)$elAttrsXml['index'] : 0;
-//        $value = null;
-//        if (isset($elAttrsXml['value'])) { // value has priority
-//            $value = (string)$elAttrsXml['value'];
-//        } else if ($elXml->count() > 0) {
-//            $value = array();
-//            foreach ($elXml->children() as $childElXml) {
-//                $elName = (string)$childElXml->getName();
-//                /*
-//                 * array_merge's here act as index implicit index incrementers
-//                 */
-//                if ($elName == 'ref') {
-//                    $value = array_merge(
-//                        $value,
-//                        array($this->parseServicePropertiesPropertyChildArrayElRefTag($childElXml))
-//                    );
-//                } else if ($elName == 'service') {
-//                    $value = array_merge(
-//                        $value,
-//                        array($this->parseServiceParametersPropertyChildArrayElServiceTag($childElXml))
-//                    );
-//                } else if ($elName == 'el') {
-//                    $value = array_merge(
-//                        $value,
-//                        $this->parseServiceParametersPropertyChildArrayElTag($childElXml)
-//                    );
-//                }
-//            }
-//        } else { // inline
-//            $value = (string)$elXml;
-//        }
-//        $result[$index] = $value;
-//
-//        return $result;
-//    }
-//
-//    public function parseServicePropertiesPropertyChildArrayElRefTag(\SimpleXMLElement $refXml)
-//    {
-//        return $this->parseRef($refXml);
-//    }
-//
-//    public function parseServiceParametersPropertyChildArrayElServiceTag(\SimpleXMLElement $serviceXml)
-//    {
-//        $result = $this->parseServiceTag($serviceXml);
-//        return $result[1];
-//    }
 
     protected function castServicePropertiesPropertyTagValue($value, $type)
     {
