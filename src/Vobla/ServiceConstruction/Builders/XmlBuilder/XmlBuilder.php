@@ -2,7 +2,8 @@
 
 namespace Vobla\ServiceConstruction\Builders\XmlBuilder;
 
-use Vobla\Tools\Notification\EventDispatcher;
+use Vobla\Tools\Notification\EventDispatcher,
+    Vobla\Container;
 
 /**
  * @copyright 2011 Modera Foundation
@@ -38,5 +39,13 @@ class XmlBuilder
     public function processXml($xmlBody, Container $container)
     {
         
+    }
+
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
     }
 }

@@ -6,7 +6,8 @@ require_once __DIR__.'/../../../../../../bootstrap.php';
 
 use Vobla\Container,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Vobla\ServiceConstruction\Definition\ServiceReference;
+    Vobla\ServiceConstruction\Definition\ServiceReference,
+    Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder;
 
 /**
  * @copyright 2011 Modera Foundation
@@ -36,8 +37,49 @@ class ServiceProcessorTest extends \PHPUnit_Framework_TestCase
         $this->sp = null;
     }
 
-    public function testParseServiceParametersPropertyChildArrayElTag()
+    public function testParseRef()
     {
+        $xml = <<<XML
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns="http://vobla-project.org/xsd/context"
+ xmlns:foo="fooNs">
+    <ref id="fo"></ref>
+</context>
+XML;
+
+        $xmlContext = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
+        $xmlChildren = $xmlContext->children();
+        $refXml = $xmlChildren[0];
+
+        $result = $this->sp->parseRef($refXml);
+        $this->assertType(
+            ServiceReference::clazz(),
+            $result,
+            sprintf('%s::parseRef must return an instance of %s', ServiceProcessor::clazz(), ServiceReference::clazz())
+        );
+    }
+
+    public function testParseArrayElRef()
+    {
+        $tc = $this;
+
+        $xmlEl = new \SimpleXMLElement('<x></x>');
+
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseRef', function($self, $argXmlEl) use($tc, $xmlEl) {
+            $tc->assertSame($xmlEl, $argXmlEl);
+        }, 1)
+        ->addDelegateMethod('parseArrayElRef', 1)
+        ->createMock();
+
+        $sp->parseArrayElRef($xmlEl);
+    }
+
+    public function testParseArrayEl()
+    {
+        $tc = $this;
+
         $xml = <<<XML
         <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xmlns="http://vobla-project.org/xsd/context"
@@ -53,12 +95,7 @@ class ServiceProcessorTest extends \PHPUnit_Framework_TestCase
                         <el index="sa3Sub">
                             <el>sa3SubSubValue</el>
                         </el>
-                    </el>
-                    <el>
-                        <el>
-                            <ref id="anId" />
-                            <el index="foo" value="fooVal" />
-                        </el>
+                        <ref id="anId" />
                     </el>
                 </el>
                 <el>rootValue2</el>
@@ -71,10 +108,38 @@ XML;
         $xmlContextChildren = $xmlContext->children();
         $xmlEl = $xmlContextChildren[0];
 
-        $result = $this->sp->parseServiceParametersPropertyChildArrayElTag($xmlEl);
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseArrayElRef', function($self, $xmlEl) use($tc) {
+            $xmlAttrs = $xmlEl->attributes();
+            $tc->assertTrue(
+                isset($xmlAttrs['id']),
+                sprintf(
+                    "Method %s::parseArrayElRef must be invoked only once and it must contain ID attribute",
+                    ServiceProcessor::clazz()
+                )
+            );
+            $tc->assertEquals(
+                'anId',
+                (string)$xmlAttrs['id'],
+                sprintf(
+                    "Method %s::parseArrayElRef was invoked with a <ref> that has wrong ID attribute",
+                    ServiceProcessor::clazz()
+                )
+            );
+            return 'foo-ref';
+        }, 1)
+        ->addMethod('parseArrayElService', function($self, $xmlEl) use($tc) {
+            return 'foo-anonym-service';
+        }, 1)
+        ->addDelegateMethod('parseArrayEl', 9)
+        ->createMock();
+
+        $result = $sp->parseArrayEl($xmlEl);
+
         $this->assertTrue(
             is_array($result),
-            sprintf("%s::parseServiceParametersPropertyChildArrayElTag must return an array", ServiceProcessor::clazz())
+            sprintf("%s::parseArrayEl must return an array", ServiceProcessor::clazz())
         );
         $this->assertTrue(
             isset($result['assoc']),
@@ -127,16 +192,22 @@ XML;
             is_array($rAssoc0['sa3']),
             '/assoc/0/sa3 must be an array'
         );
+
         $rAssoc0sa3 = $rAssoc0['sa3'];
         $this->assertEquals(
-            2,
+            3,
             sizeof($rAssoc0sa3),
-            '/assoc/0/sa3 array must contain only 2 elements'
+            '/assoc/0/sa3 array must contain only 3 elements'
         );
-        $this->assertType(
-            ServiceDefinition::clazz(),
+        $this->assertEquals(
+            'foo-anonym-service',
             $rAssoc0sa3[0],
-            sprintf('/assoc/0/sa3/0 must be an instance of %s', ServiceDefinition::clazz())
+            sprintf('/assoc/0/sa3/0 must be a resolved service')
+        );
+        $this->assertEquals(
+            'foo-ref',
+            $rAssoc0sa3[1],
+            sprintf('/assoc/0/sa3/1 must be a resolved service')
         );
         $this->assertTrue(
             isset($rAssoc0sa3['sa3Sub']),
@@ -153,101 +224,53 @@ XML;
         );
     }
 
-    // TODO move this test down somewhere ?
-    public function testParseServiceParametersPropertyChildArrayTag()
+    public function testParseArray()
     {
         $xml = <<<XML
-        <array>
-            <el index="someRef">
+        <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		         xmlns="http://vobla-project.org/xsd/context"
+		         xmlns:foo="fooNs">
+            <array>
+                <el index="fooIndex1" value="fooValue1" />
                 <el>
-                    <ref id="anId" />
+                    <service />
                 </el>
-            </el>
-            <el index="subAssoc">
                 <el>
-                    <el index="sa1" value="sav1" />
-                    <el index="sa2">
-                        sav2
-                    </el>
-                    <el index="sa3">
-                        <service />
-                    </el>
+                    <ref />
                 </el>
-            </el>
-            <el>
-                <el index="fooKey" value="fooValue" />
-            </el>
-        </array>
+            </array>
+        </context>
 XML;
 
         $xmlEl = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
         $contextChildrenXml = $xmlEl->children();
-        $arrayXml = $contextChildrenXml;
+        $arrayXml = $contextChildrenXml[0];
 
-        $result = $this->sp->parseServiceParametersPropertyChildArrayTag($arrayXml);
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseArrayEl', function() {
+            return true;
+        }, 3)
+        ->addDelegateMethod('parseArray', 1)
+        ->createMock();
+
+        $result = $sp->parseArray($arrayXml);
         $this->assertTrue(
             is_array($result),
-            sprintf("%s::parseServiceParametersPropertyChildArrayTag must return an array", ServiceProcessor::clazz())
+            sprintf("%s::parseArray must return an array", ServiceProcessor::clazz())
+        );
+        $this->assertEquals(
+            3,
+            sizeof($result),
+            'Resulting array must contain 3 root elements.'
+        );
+        $this->assertTrue(
+            isset($result['fooIndex1']),
+            'Resulting array must contain an element with "fooIndex1" index.'
         );
     }
 
-    public function testParseServiceParametersPropertyChildTag()
-    {
-        $tc = $this;
-
-        $xml = <<<XML
-        <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xmlns="http://vobla-project.org/xsd/context"
-		 xmlns:foo="fooNs">
-
-        <property name="prop1">
-            <array>
-            </array>
-        </property>
-
-        <property name="prop2">
-            <service>
-            </service>
-        </property>
-</context>
-XML;
-
-        $xmlEl = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
-        $contextChildrenXml = $xmlEl->children();
-        $prop1Xml = $contextChildrenXml[0]->children();
-        $prop2Xml = $contextChildrenXml[1]->children();
-
-        $arrayXml = $prop1Xml[0];
-        $serviceXml = $prop2Xml[0];
-
-        // array
-        $cb1 = function($self, $argArrayXml) use($arrayXml, $tc) {
-            $tc->assertSame($arrayXml, $argArrayXml);
-        };
-        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp1 */
-        $sp1 = $this->mf->createTestCaseAware(ServiceProcessor::clazz())->addMethod(
-            'parseServiceParametersPropertyChildArrayTag',
-            $cb1,
-            1
-        )->addDelegateMethod('parseServiceParametersPropertyChildTag', 1)->createMock();
-
-        $sp1->parseServiceParametersPropertyChildTag($arrayXml);
-
-        // service
-        $cb2 = function($self, $argServiceXml) use($serviceXml, $tc) {
-            $tc->assertSame($serviceXml, $argServiceXml);
-        };
-
-        $sp2 = $this->mf->createTestCaseAware(ServiceProcessor::clazz())->addMethod(
-            'parseServiceParametersPropertyChildServiceTag',
-            $cb2,
-            1
-        )->addDelegateMethod('parseServiceParametersPropertyChildTag', 1)->createMock();
-
-        $sp2->parseServiceParametersPropertyChildTag($serviceXml);
-    }
-
-    public function testParseServiceParametersPropertyTag()
+    public function testParseServicePropertiesPropertyTag()
     {
         $xml = <<<XML
         <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -263,7 +286,7 @@ XML;
             <property name="inlineProp">
                 someInlineValue
             </property>
-            <property name="assocValue">
+            <property name="assocProp">
                 <array>
                     <el name="someRef">
                         <ref id="someReferencedId" />
@@ -276,6 +299,7 @@ XML;
                     </el>
                 </array>
             </property>
+            <property name="inlineCastProp" type="bool">true</property>
         </parameters>
     </service>
 </context>
@@ -286,96 +310,117 @@ XML;
         $serviceChildrenXml = $contextChildrenXml->children();
         $serviceParametersXml = $serviceChildrenXml[0]->children();
 
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addDelegateMethod('parseServicePropertiesPropertyTag', 7)
+        ->addDelegateMethod('castServicePropertiesPropertyTagValue', 3)
+        ->addMethod('parseServicePropertiesPropertyChildTag', function() {
+            return 'assoc-value';
+        }, 1)
+        ->createMock();
+
         // scalarProperty
-        $result = $this->sp->parseServiceParametersPropertyTag($serviceParametersXml[0]);
-        $this->assertTrue(
-            is_array($result),
-            $this->createWrongPropertyParsingResult()
-        );
-        $this->assertTrue(
-            isset($result['scalarProperty']),
-            $this->createMissingParametersPropertyValue('scalarProperty')
-        );
+        $result = $sp->parseServicePropertiesPropertyTag($serviceParametersXml[0]);
         $this->assertEquals(
             'fooValue',
-            $result['scalarProperty'],
+            $result,
             $this->createWrongParametersPropertyValue('scalarProperty')
         );
 
         // trueBoolProperty
-        $result = $this->sp->parseServiceParametersPropertyTag($serviceParametersXml[1]);
+        $result = $sp->parseServicePropertiesPropertyTag($serviceParametersXml[1]);
         $this->assertTrue(
-            is_array($result),
-            $this->createWrongPropertyParsingResult()
-        );
-        $this->assertTrue(
-            isset($result['trueBoolProperty']),
-            $this->createMissingParametersPropertyValue('trueBoolProperty')
-        );
-        $this->assertTrue(
-            $result['trueBoolProperty'],
+            $result,
             $this->createWrongParametersPropertyValue('trueBoolProperty')
         );
 
         // falseBoolProperty
-        $result = $this->sp->parseServiceParametersPropertyTag($serviceParametersXml[2]);
-        $this->assertTrue(
-            is_array($result),
-            $this->createWrongPropertyParsingResult()
-        );
+        $result = $sp->parseServicePropertiesPropertyTag($serviceParametersXml[2]);
         $this->assertFalse(
-            isset($result['trueBoolProperty']),
-            $this->createMissingParametersPropertyValue('falseBoolProperty')
-        );
-        $this->assertFalse(
-            $result['falseBoolProperty'],
+            $result,
             $this->createWrongParametersPropertyValue('falseBoolProperty')
         );
 
         // refProperty
-        $result = $this->sp->parseServiceParametersPropertyTag($serviceParametersXml[3]);
-        $this->assertTrue(
-            is_array($result),
-            $this->createWrongPropertyParsingResult()
-        );
-        $this->assertTrue(
-            isset($result['refProperty']),
-            $this->createMissingParametersPropertyValue('refProperty')
-        );
+        $result = $sp->parseServicePropertiesPropertyTag($serviceParametersXml[3]);
         $this->assertType(
             ServiceReference::clazz(),
-            $result['refProperty'],
+            $result,
             $this->createWrongParametersPropertyValue('refProperty')
         );
         $this->assertEquals(
             'anotherService',
-            $result['refProperty']->getServiceId()
+            $result->getServiceId()
         );
 
         // inlineProp
-        $result = $this->sp->parseServiceParametersPropertyTag($serviceParametersXml[4]);
+        $result = $sp->parseServicePropertiesPropertyTag($serviceParametersXml[4]);
+        $this->assertTrue(
+            strpos($result, 'someInlineValue') !== false,
+            $this->createWrongParametersPropertyValue('inlineProp')
+        );
+
+        // assocProp
+        $result = $sp->parseServicePropertiesPropertyTag($serviceParametersXml[5]);
+        $this->assertEquals(
+            'assoc-value',
+            $result
+        );
+
+        // inlineCastProp
+        $result = $sp->parseServicePropertiesPropertyTag($serviceParametersXml[6]);
+        $this->assertTrue(
+            $result,
+            'properties/property[name="inlineCastProp"] must be === true'
+        );
+    }
+
+    public function testParseServicePropertiesTag()
+    {
+        $xml = <<<XML
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://vobla-project.org/xsd/context"
+		 xmlns:foo="fooNs">
+
+        <properties>
+            <property name="prop1" />
+            <property name="prop2" />
+        </properties>
+</context>
+XML;
+
+        $xml = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
+        $xmlChildren = $xml->children();
+        $propertiesXml = $xmlChildren[0];
+
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseServicePropertiesPropertyTag', function() {
+            return 'property-value';
+        }, 2)
+        ->addDelegateMethod('parseServicePropertiesTag', 1)
+        ->createMock();
+
+        $result = $sp->parseServicePropertiesTag($propertiesXml);
         $this->assertTrue(
             is_array($result),
-            $this->createWrongPropertyParsingResult()
+            sprintf('%s::parseServiceParametersTag execution result must be an array', ServiceProcessor::clazz())
         );
-        $this->assertTrue(
-            isset($result['inlineProp']),
-            $this->createMissingParametersPropertyValue('inlineProp')
-        );
-        $this->assertTrue(
-            strpos($result['inlineProp'], 'someInlineValue') !== false,
-            $this->createWrongParametersPropertyValue('inlineProp')
+        $this->assertEquals(
+            2,
+            sizeof($result),
+            'Resulting array must contain 2 root-elements.'
         );
     }
 
     private function createWrongPropertyParsingResult()
     {
-        return sprintf('%s::parseServiceParametersPropertyTag result must be an array', ServiceProcessor::clazz());
+        return sprintf('%s::parseServicePropertiesPropertyTag result must be an array', ServiceProcessor::clazz());
     }
 
     private function createWrongParametersPropertyValue($propertyName)
     {
-        return sprintf('parameters/property[name="%s"] value is missing doesn\'t match in resulting array.', $propertyName);
+        return sprintf('parameters/property[name="%s"] value doesn\'t match in resulting array.', $propertyName);
     }
 
     private function createMissingParametersPropertyValue($propertyName)
@@ -383,44 +428,183 @@ XML;
         return sprintf('parameters/property[name="%s"] value is missing in resulting array.', $propertyName);
     }
 
-    public function testParseServiceParametersTag()
+    public function testParseServiceConstructorArgArrayTag()
     {
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseArray', function() {}, 1)
+        ->addDelegateMethod('parseServiceConstructorArgArrayTag', 1)
+        ->createMock();
+
+        $sp->parseServiceConstructorArgArrayTag(new \SimpleXMLElement('<x></x>'));
+    }
+
+    public function testParseServiceConstructorArgServiceTag()
+    {
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseServiceTag', function() {}, 1)
+        ->addDelegateMethod('parseServiceConstructorArgServiceTag', 1)
+        ->createMock();
+
+        $sp->ParseServiceConstructorArgServiceTag(new \SimpleXMLElement('<x></x>'));
+    }
+
+    public function testParseServiceConstructorArgRefTag()
+    {
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseRef', function() {}, 1)
+        ->addDelegateMethod('parseServiceConstructorArgRefTag', 1)
+        ->createMock();
+
+        $sp->parseServiceConstructorArgRefTag(new \SimpleXMLElement('<x></x>'));
+    }
+
+    public function testParseServiceConstructorArgValueTag_casted()
+    {
+        $tc = $this;
+
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $spWithType = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('castServicePropertiesPropertyTagValue', function($self, $value, $type) use($tc) {
+            $tc->assertEquals(
+                'fooValue',
+                $value,
+                "Passed <value> tag body doesn't match."
+            );
+            $tc->assertEquals(
+                'fooType',
+                $type,
+                "Passed type to cast to doesn't match."
+            );
+
+            return $value.'-return';
+        }, 1)
+        ->addDelegateMethod('parseServiceConstructorArgValueTag', 1)
+        ->createMock();
+        $result = $spWithType->parseServiceConstructorArgValueTag(new \SimpleXMLElement('<value type="fooType">fooValue</value>'));
+
+        $this->assertEquals(
+            'fooValue-return',
+            $result,
+            "Casted <value>'s tag body doesn't match."
+        );
+    }
+
+    public function testParseServiceConstructorArgValueTag()
+    {
+        $tc = $this;
+
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addDelegateMethod('parseServiceConstructorArgValueTag', 1)
+        ->createMock();
+
+        $result = $sp->parseServiceConstructorArgValueTag(new \SimpleXMLElement('<value>fooValue</value>'));
+        $this->assertEquals(
+            'fooValue',
+            $result,
+            "Returned <value>'s tag body doesn't match."
+        );
+    }
+
+    public function testParseServiceConstructorArg()
+    {
+        $tc = $this;
+
         $xml = <<<XML
 <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xmlns="http://vobla-project.org/xsd/context"
 		 xmlns:foo="fooNs">
 
-    <service>
-        <parameters>
-            <property name="prop1" />
-            <property name="prop2" />
-        </parameters>
-    </service>
+        <arg>
+            <array />
+        </arg>
+        <arg>
+            <service />
+        </arg>
+        <arg>
+            <ref />
+        </arg>
+        <arg>
+            <value></value>
+        </arg>
+</context>
+XML;
+        
+        $xmlEl = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
+        list($arrayXml, $serviceXml, $refXml, $valueXml) = $xmlEl->children();
+
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseServiceConstructorArgArrayTag', function($self, $el) use($tc) {
+            $tc->assertType('SimpleXMLElement', $el);
+            $tc->assertEquals('array', $el->getName());
+        }, 1)
+        ->addMethod('parseServiceConstructorArgServiceTag', function($self, $el) use($tc) {
+
+        }, 1)
+        ->addMethod('parseServiceConstructorArgRefTag', function($self, $el) use($tc) {
+
+        }, 1)
+        ->addMethod('parseServiceConstructorArgValueTag', function($self, $el) use($tc) {
+
+        }, 1)
+        ->addDelegateMethod('parseServiceConstructorArgTag', 4)
+        ->createMock();
+
+        $sp->parseServiceConstructorArgTag($arrayXml);
+        $sp->parseServiceConstructorArgTag($serviceXml);
+        $sp->parseServiceConstructorArgTag($refXml);
+        $sp->parseServiceConstructorArgTag($valueXml);
+    }
+
+    public function testParseServiceConstructor()
+    {
+        $tc = $this;
+
+        $xml = <<<XML
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://vobla-project.org/xsd/context"
+		 xmlns:foo="fooNs">
+
+    <constructor>
+        <arg />
+        <arg />
+    </constructor>
 </context>
 XML;
 
-//        $xmlEl = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
-//        $contextChildrenXml = $xmlEl->children();
-//        $serviceChildrenXml = $contextChildrenXml->children();
-//        $serviceParametersXml = $serviceChildrenXml[0];
-//
-//        $result = $this->sp->parseServiceParametersTag($serviceParametersXml);
-//        $this->assertTrue(
-//            is_array($result),
-//            sprintf("%s::parseServiceParametersTag result must be an array", ServiceProcessor::clazz())
-//        );
-//
-//        $this->assertTrue(
-//            isset($result['scalarProperty']),
-//            $this->createInvalidParametersPropertyValue('scalarProperty')
-//        );
-//        $this->assertEquals(
-//            'fooValue',
-//            $result['scalarProperty'],
-//            $this->createInvalidParametersPropertyValue('scalarProperty')
-//        );
+        $xmlEl = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
+        $xmlChildren = $xmlEl->children();
+        $constructorXml = $xmlChildren[0];
 
-        
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseServiceConstructorArgTag', function($self, $argXml) use($tc) {
+            $tc->assertEquals(
+                'arg',
+                $argXml->getName(),
+                sprintf(
+                    'Argument passed to the %s::parseServiceConstructorArgTag must always be <arg> tag.',
+                    ServiceDefinition::clazz()
+                )
+            );
+        }, 2)
+        ->addDelegateMethod('parseServiceConstructorTag', 1)
+        ->createMock();
+
+        $result = $sp->parseServiceConstructorTag($constructorXml);
+        $this->assertTrue(
+            is_array($result),
+            sprintf('%s::parseServiceConstructor must return an array', ServiceProcessor::clazz())
+        );
+        $this->assertEquals(
+            2,
+            sizeof($result),
+            'Resulting array must contain to elements'
+        );
     }
 
     public function testParseServiceTag()
@@ -438,10 +622,9 @@ XML;
              is-abstract="false"
              init-method="fooInitMethod">
 
-        <constructor>
-            <param></param>
-            <param></param>
-        </constructor>
+             <constructor />
+
+             <properties />
     </service>
 </context>
 XML;
@@ -450,7 +633,19 @@ XML;
         $children = $xmlEl->children();
         $serviceXmlEl = $children[0];
 
-        $def = $this->sp->parseServiceTag($serviceXmlEl);
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseServiceConstructorTag', function() {
+            return array('constructor-args');
+        }, 1)
+        ->addMethod('parseServicePropertiesTag', function() {
+            return array('properties');
+        }, 1)
+        ->addDelegateMethod('parseServiceTag', 1)
+        ->addDelegateMethod('createMethodNameFromAttributeName', 1)
+        ->createMock();
+
+        $def = $sp->parseServiceTag($serviceXmlEl);
         $this->assertTrue(
             is_array($def),
             sprintf(
@@ -498,5 +693,53 @@ XML;
             $def->getInitMethod(),
             "init-method doesn't match."
         );
+
+        $this->assertSame(
+            array('constructor-args'),
+            $def->getConstructorArguments(),
+            "Constructor-args don\'t match"
+        );
+
+        $this->assertSame(
+            array('properties'),
+            $def->getArguments(),
+            'Properties don\'t match'
+        );
+    }
+
+    public function testProcessXml()
+    {
+        $tc = $this;
+
+        $def = new ServiceDefinition();
+
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseServiceTag', function($self) use($def) {
+            return array('anId', $def);
+        }, 1)
+        ->addDelegateMethod('processXml', 1)
+        ->createMock();
+
+        $container = $this->mf->createTestCaseAware(Container::clazz())
+        ->addMethod('addServiceDefinition', function($self, $id, $argDef) use($tc, $def) {
+            $tc->assertSame($argDef, $def);
+        }, 1)
+        ->createMock();
+
+        $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())->createMock();
+
+        $xml = <<<XML
+    <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://vobla-project.org/xsd/context"
+		 xmlns:foo="fooNs">
+
+	<foo:service />
+
+    <service />
+</context>
+XML;
+;
+        $sp->processXml($xml, $container, $xmlBuilder);
     }
 }
