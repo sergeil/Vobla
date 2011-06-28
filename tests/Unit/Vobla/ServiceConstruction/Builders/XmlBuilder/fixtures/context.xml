@@ -1,0 +1,24 @@
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://vobla-project.org/xsd/context">
+    <service id="fooService"
+             factory-method="fooFactoryMethod"
+             factory-service="fooFactoryService"
+             isAbstract="false">
+        
+        <constructor>
+            <param></param>
+            <param></param>
+        </constructor>
+
+        <parameters>
+            <property name="scalarProperty" value="fooValue" />
+            <property name="trueBoolProperty" value="true" type="bool" />
+            <property name="falseBoolProperty" value="false" type="bool" />
+            <property name="refProperty" ref="anotherService" />
+
+            <aux:stuff />
+        </parameters>
+    </service>
+</context>
+
+        

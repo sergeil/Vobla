@@ -154,7 +154,7 @@ class ServiceDefinition
      */
     public function setAbstract($isAbstract)
     {
-        $this->isAbstract = $isAbstract;
+        $this->isAbstract = is_bool($isAbstract) ? $isAbstract : $isAbstract == 'true';
     }
 
     /**
