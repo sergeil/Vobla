@@ -1,0 +1,5 @@
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns="http://vobla-project.org/xsd/context"
+ xmlns:x="xxx">
+    <import resource="b.xml" />
+</context>
