@@ -108,12 +108,14 @@ class ServiceProcessor implements Processor
 
             $value = $this->parseArrayEl($elXml);
 
-            $elAttrsXml = $elXml->attributes();
-            if (isset($elAttrsXml['index'])) {
-                $result[(string)$elAttrsXml['index']] = $value;
-            } else {
-                $result[] = $value;
-            }
+//            $elAttrsXml = $elXml->attributes();
+//            if (isset($elAttrsXml['index'])) {
+//                $result[(string)$elAttrsXml['index']] = $value;
+//            } else {
+//                $result[] = $value;
+//            }
+
+            $result = array_merge($result, $value);
         }
         return $result;
     }
@@ -201,7 +203,8 @@ class ServiceProcessor implements Processor
 
     public function parseServiceConstructorArgServiceTag(\SimpleXMLElement $serviceXml)
     {
-        return $this->parseServiceTag($serviceXml);
+        list($id, $def) = $this->parseServiceTag($serviceXml);
+        return $def;
     }
 
     public function parseServiceConstructorArgRefTag(\SimpleXMLElement $refXml)
@@ -295,33 +298,13 @@ class ServiceProcessor implements Processor
 
     public function parseServicePropertiesPropertyArrayTag(\SimpleXMLElement $arrayXml)
     {
-//        if ($arrayXml->getName() != 'array') {
-//            throw Exception('Root element name must be "array".');
-//        }
-//
-//        $result = array();
-//        foreach ($arrayXml->children() as $elXml) {
-//            if ($elXml->getName() != 'el') {
-//                continue; // TODO add an extension point here
-//            }
-//
-//            $value = $this->parseServiceParametersPropertyChildArrayElTag($elXml);
-//
-//            $elAttrsXml = $elXml->attributes();
-//            if (isset($elAttrsXml['index'])) {
-//                $result[(string)$elAttrsXml['index']] = $value;
-//            } else {
-//                $result[] = $value;
-//            }
-//        }
-//        return $result;
-
         return $this->parseArray($arrayXml);
     }
 
     public function parseServicePropertiesPropertyChildServiceTag(\SimpleXMLElement $serviceXml)
     {
-        return $this->parseServiceTag($serviceXml);
+        list($id, $def) = $this->parseServiceTag($serviceXml);
+        return $def;
     }
 
     public function parseServicePropertiesPropertyChildRefTag(\SimpleXMLElement $refXml)

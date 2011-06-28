@@ -168,7 +168,7 @@ XML;
         );
 
         $rAssoc0 = $rAssoc[0];
-        
+
         $this->assertTrue(
             isset($rAssoc0['sa1']),
             'Unable to find /assoc/0/sa1'
@@ -249,7 +249,7 @@ XML;
         /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
         $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
         ->addMethod('parseArrayEl', function() {
-            return true;
+            return array('foo');
         }, 3)
         ->addDelegateMethod('parseArray', 1)
         ->createMock();
@@ -264,10 +264,10 @@ XML;
             sizeof($result),
             'Resulting array must contain 3 root elements.'
         );
-        $this->assertTrue(
-            isset($result['fooIndex1']),
-            'Resulting array must contain an element with "fooIndex1" index.'
-        );
+//        $this->assertTrue(
+//            isset($result['fooIndex1']),
+//            'Resulting array must contain an element with "fooIndex1" index.'
+//        );
     }
 
     public function testParseServicePropertiesPropertyTag()
@@ -532,7 +532,7 @@ XML;
         </arg>
 </context>
 XML;
-        
+
         $xmlEl = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
         list($arrayXml, $serviceXml, $refXml, $valueXml) = $xmlEl->children();
 
@@ -653,7 +653,7 @@ XML;
                 ServiceProcessor::clazz(), ServiceDefinition::clazz()
             )
         );
-        
+
         $this->assertEquals(
             $def[0],
             'fooServiceId',
@@ -741,5 +741,121 @@ XML;
 XML;
 ;
         $sp->processXml($xml, $container, $xmlBuilder);
+    }
+
+    public function testProcessXml_integration()
+    {
+                $xml = <<<XML
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://vobla-project.org/xsd/context"
+		 xmlns:foo="fooNs">
+
+	<foo:service />
+
+    <service id="fooServiceId"
+             factory-method="fooFactoryMethod"
+             factory-service="fooFactoryService"
+             is-abstract="true"
+             init-method="fooInitMethod">
+
+             <constructor>
+                <arg>
+                    <value>fooValue</value>
+                </arg>
+                <arg>
+                    <service init-method="anAnonymousInitMethod" />
+                </arg>
+                <arg>
+                    <ref id="fooRef" />
+                </arg>
+             </constructor>
+
+             <properties>
+                <property name="barProp">
+                    <service />
+                </property>
+                <property name="fooProp">
+                    <array>
+                        <el index="fooPropSub">fooValueSub</el>
+                    </array>
+                </property>
+             </properties>
+    </service>
+</context>
+XML;
+
+        $defs = array();
+
+        $container = $this->mf->createTestCaseAware(Container::clazz())
+        ->addMethod('addServiceDefinition', function($self, $id, $argDef) use(&$defs) {
+            $defs[$id] = $argDef;
+        }, 1)
+        ->createMock();
+
+        $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())->createMock();
+
+        $this->sp->processXml($xml, $container, $xmlBuilder);
+
+        $this->assertEquals(
+            1,
+            sizeof($defs)
+        );
+        $this->assertTrue(
+            isset($defs['fooServiceId'])
+        );
+        $this->assertType(
+            ServiceDefinition::clazz(),
+            $defs['fooServiceId']
+        );
+
+        /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $def1 */
+        $def1 = $defs['fooServiceId'];
+        $this->assertEquals('fooFactoryMethod', $def1->getFactoryMethod());
+        $this->assertEquals('fooFactoryService', $def1->getFactoryService());
+        $this->assertTrue($def1->isAbstract());
+        $this->assertEquals('fooInitMethod', $def1->getInitMethod());
+
+        $def1cp = $def1->getConstructorArguments();
+        $this->assertTrue(is_array($def1cp));
+        $this->assertEquals(3, sizeof($def1cp));
+        $this->assertEquals('fooValue', $def1cp[0]);
+
+        /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $def1cpArg2 */
+        $def1cpArg2 = $def1cp[1];
+        $this->assertType(
+            ServiceDefinition::clazz(),
+            $def1cpArg2,
+            sprintf("Second constructor's argument must be an instance of the %s", ServiceDefinition::clazz())
+        );
+        $this->assertEquals('anAnonymousInitMethod', $def1cpArg2->getInitMethod());
+
+        /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $def1cpArg3 */
+        $def1cpArg3 = $def1cp[2];
+        $this->assertType(
+            ServiceReference::clazz(),
+            $def1cpArg3,
+            sprintf("Third constructor's argument must be an instance of the %s", ServiceReference::clazz())
+        );
+
+        $def1Props = $def1->getArguments();
+        $this->assertTrue(is_array($def1Props));
+        $this->assertEquals(2, sizeof($def1Props));
+
+        $this->assertTrue(isset($def1Props['barProp']));
+        $this->assertType(
+            ServiceDefinition::clazz(),
+            $def1Props['barProp'],
+            sprintf(
+                'service[id="fooServiceId"]/properties/property[name="barProp"] value must be an instance of %s',
+                ServiceDefinition::clazz()
+            )
+        );
+
+        $this->assertTrue(isset($def1Props['fooProp']));
+        $def1Props2 = $def1Props['fooProp'];
+        $this->assertSame(
+            array('fooPropSub'=>'fooValueSub'),
+            $def1Props2
+        );
     }
 }
