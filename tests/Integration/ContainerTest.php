@@ -26,9 +26,9 @@ namespace Vobla;
 
 require_once __DIR__.'/../bootstrap.php';
 
-require_once __DIR__.'/Fixtures/Foo.php';
-require_once __DIR__.'/Fixtures/Bar.php';
-require_once __DIR__.'/Fixtures/FooBar.php';
+require_once __DIR__ . '/fixtures/Foo.php';
+require_once __DIR__ . '/fixtures/Bar.php';
+require_once __DIR__ . '/fixtures/FooBar.php';
 
 use Vobla\Container,
     Vobla\Configuration,
@@ -47,14 +47,11 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
     public function testIt()
     {
         $cfg = new Configuration();
-        $cfg->setContextScopeHandlersProvider(new DefaultContextScopeHandlersProvider());
-        $cfg->setAssemblersProvider(new DefaultAssemblersProvider());
-        $cfg->setServiceLocatorsProvider(new DefaultServiceLocatorsProvider());
 
         $container = new Container($cfg);
 
         $ab = new AnnotationsBuilder();
-        $ab->processPath($container, __DIR__.'/Fixtures');
+        $ab->processPath($container, __DIR__.'/fixtures');
 
         /* @var FooService $fooService */
         $fooService = $container->getServiceById('fooService');

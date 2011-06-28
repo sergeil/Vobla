@@ -24,7 +24,10 @@
 
 namespace Vobla;
 
-use Vobla\ServiceConstruction\Assemblers\AssemblersProvider;
+use Vobla\ServiceConstruction\Assemblers\AssemblersProvider,
+    Vobla\ServiceConstruction\Assemblers\DefaultAssemblersProvider,
+    Vobla\Context\DefaultContextScopeHandlersProvider,
+    Vobla\ServiceLocating\DefaultServiceLocatorsProvider;
 
 /**
  * 
@@ -65,6 +68,10 @@ class Configuration
      */
     public function getAssemblersProvider()
     {
+        if (null === $this->assemblersProvider) {
+            $this->assemblersProvider = new DefaultAssemblersProvider();
+        }
+
         return $this->assemblersProvider;
     }
 
@@ -81,6 +88,10 @@ class Configuration
      */
     public function getContextScopeHandlersProvider()
     {
+        if (null === $this->contextScopeHandlersProvider) {
+            $this->contextScopeHandlersProvider = new DefaultContextScopeHandlersProvider();
+        }
+
         return $this->contextScopeHandlersProvider;
     }
 
@@ -110,6 +121,10 @@ class Configuration
      */
     public function getServiceLocatorsProvider()
     {
+        if (null === $this->serviceLocatorsProvider) {
+            $this->serviceLocatorsProvider = new DefaultServiceLocatorsProvider();
+        }
+
         return $this->serviceLocatorsProvider;
     }
 
