@@ -43,11 +43,13 @@ class ServiceProcessor implements Processor
 
         foreach ($xmlEl->children() as $childXml) {
             if ($childXml->getName() == 'service') {
-                $result = $this->parseServiceTag($childXml);
-                $container->addServiceDefinition(
-                    $result[0],
-                    $result[1]
-                );
+                /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $def */
+                list($id, $def) = $this->parseServiceTag($childXml);
+                if (!$id) {
+                    $reflClass = new \ReflectionClass($def->getClassName());
+                    $id = $xmlBuilder->getServiceIdGenerator()->generate($reflClass, $id, $def);
+                }
+                $container->addServiceDefinition($id, $def);
             }
         }
     }

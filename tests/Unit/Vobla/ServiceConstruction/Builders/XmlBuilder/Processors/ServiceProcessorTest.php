@@ -30,7 +30,8 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Definition\ServiceReference,
     Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder,
-    Vobla\ServiceConstruction\Definition\QualifiedReference;
+    Vobla\ServiceConstruction\Definition\QualifiedReference,
+    Vobla\ServiceConstruction\Builders\ServiceIdGenerator;
 
 /**
  *
@@ -790,6 +791,53 @@ XML;
 </context>
 XML;
 ;
+        $sp->processXml($xml, $container, $xmlBuilder);
+    }
+
+    public function testProcessXml_serviceWithNoId()
+    {
+        $tc = $this;
+
+        $xml = <<<XML
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://vobla-project.org/xsd/context"
+		 xmlns:foo="fooNs">
+    
+    <service />
+</context>
+XML;
+
+        $def = $this->mf->createTestCaseAware(ServiceDefinition::clazz())
+        ->addMethod('getClassName', 'stdClass')
+        ->createMock();
+        
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseServiceTag', array('', $def), 1)
+        ->addDelegateMethod('processXml')
+        ->createMock();
+
+        $serviceIdGenerator = $this->mf->createTestCaseAware(ServiceIdGenerator::clazz())
+        ->addMethod('generate', function($self, $reflClass, $declaredId, $argDef) use($tc, $def) {
+            $tc->assertSame(
+                $def,
+                $argDef,
+                sprintf(
+                    '%s::generate must receive the same instance of %s that %s::parseServiceTag created.',
+                    ServiceIdGenerator::clazz(), ServiceDefinition::clazz(), ServiceProcessor::clazz()
+                )
+            );
+            $tc->assertEquals('', $declaredId);
+        }, 1)
+        ->createMock();
+
+        $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())
+        ->addMethod('getServiceIdGenerator', $serviceIdGenerator)
+        ->createMock();
+        $container = $this->mf->createTestCaseAware(Container::clazz())
+        ->addMethod('addServiceDefinition')
+        ->createMock();
+
         $sp->processXml($xml, $container, $xmlBuilder);
     }
 
