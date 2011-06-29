@@ -32,11 +32,11 @@ require_once __DIR__ . '/fixtures/FooBar.php';
 
 use Vobla\Container,
     Vobla\Configuration,
-    Vobla\Context\DefaultContextScopeHandlersProvider,
-    Vobla\ServiceConstruction\Assemblers\DefaultAssemblersProvider,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder,
     Doctrine\Common\Annotations\AnnotationReader,
-    \Vobla\ServiceLocating\DefaultServiceLocatorsProvider;
+    Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder,
+    Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Import\ImportProcessor,
+    Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Import\StaticPathResolver;
 
 /**
  *
@@ -44,15 +44,36 @@ use Vobla\Container,
  */ 
 class ContainerTest extends \PHPUnit_Framework_TestCase
 {
-    public function testIt()
+    public function testItWithAnnotations()
     {
-        $cfg = new Configuration();
-
-        $container = new Container($cfg);
+        $container = new Container(new Configuration());
 
         $ab = new AnnotationsBuilder();
         $ab->processPath($container, __DIR__.'/fixtures');
 
+        $this->tc($container);
+    }
+
+    public function testItWithXmls()
+    {
+        $container = new Container(new Configuration());
+
+        $xb = new XmlBuilder();
+
+        foreach ($xb->getProcessors() as $p) {
+            if ($p instanceof ImportProcessor) {
+                /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Import\ImportProcessor $p */
+                $p->setPathResolver(new StaticPathResolver(__DIR__.'/fixtures/context/'));
+            }
+        }
+        
+        $xb->processXml(file_get_contents(__DIR__.'/fixtures/context/a.xml'), $container);
+
+        $this->tc($container);
+    }
+
+    protected function tc(Container $container)
+    {
         /* @var FooService $fooService */
         $fooService = $container->getServiceById('fooService');
         $this->assertType('Foo', $fooService);

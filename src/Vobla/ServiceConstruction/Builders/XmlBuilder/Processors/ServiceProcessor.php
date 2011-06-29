@@ -28,7 +28,8 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\Exception,
-    Vobla\ServiceConstruction\Definition\ServiceReference;
+    Vobla\ServiceConstruction\Definition\ServiceReference,
+    Vobla\ServiceConstruction\Definition\QualifiedReference;
 
 /**
  *
@@ -105,15 +106,17 @@ class ServiceProcessor implements Processor
     public function parseRef(\SimpleXMLElement $refXml)
     {
         if ($refXml->getName() != 'ref') {
-            throw new InvalidArgumentException('Tag-name must be "ref"');
+            throw new \InvalidArgumentException('Reference tag-name must be "ref"');
         }
         $refAttrsXml = $refXml->attributes();
 
-        if (!isset($refAttrsXml['id'])) {
-            throw new Exception('"id" attribute is mandatory!');
+        if (isset($refAttrsXml['id'])) {
+            return new ServiceReference((string)$refAttrsXml['id']);
+        } else if (isset($refAttrsXml['qualifier'])) {
+            return new QualifiedReference((string)$refAttrsXml['qualifier']);
         }
 
-        return new ServiceReference((string)$refAttrsXml['id']);
+        throw new Exception('"id" or "qualifier" attribute is mandatory!');
     }
 
     public function parseArray(\SimpleXMLElement $arrayXml)

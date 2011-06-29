@@ -28,7 +28,8 @@ require_once __DIR__.'/../../../../../bootstrap.php';
 
 use Vobla\ServiceConstruction\Builders\XmlBuilder\DefaultProcessorsProvider,
     Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor,
-    Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ConfigProcessor;
+    Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ConfigProcessor,
+    Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Import\ImportProcessor;
 
 /**
  *
@@ -40,13 +41,16 @@ class DefaultProcessorsProviderTest extends \PHPUnit_Framework_TestCase
     {
         $dpp = new DefaultProcessorsProvider();
 
-        $hasServiceProcessor = $hasConfigProcessor = false;
+        $hasServiceProcessor = $hasConfigProcessor = $hasImportProcessor = false;
         foreach ($dpp->getProcessors() as $processor) {
             if ($processor instanceof ServiceProcessor) {
                 $hasServiceProcessor = true;
             }
             if ($processor instanceof ConfigProcessor) {
                 $hasConfigProcessor = true;
+            }
+            if ($processor instanceof ImportProcessor) {
+                $hasImportProcessor = true;
             }
         }
 
@@ -62,6 +66,13 @@ class DefaultProcessorsProviderTest extends \PHPUnit_Framework_TestCase
             sprintf(
                 '%s::getProcessors must contain instance of %s',
                 DefaultProcessorsProvider::clazz(), ServiceProcessor::clazz()
+            )
+        );
+        $this->assertTrue(
+            $hasImportProcessor,
+            sprintf(
+                '%s::getProcessors must contain instance of %s',
+                DefaultProcessorsProvider::clazz(), ImportProcessor::clazz()
             )
         );
     }

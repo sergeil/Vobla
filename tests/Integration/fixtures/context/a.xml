@@ -1,0 +1,13 @@
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://vobla-project.org/xsd/context">
+    <import resource="b.xml" />
+
+    <service id="fooService" class-name="Foo" scope="prototype">
+        <properties>
+            <property name="bar" ref="barService" />
+            <property name="foobar">
+                <ref qualifier="foobarQlr" />
+            </property>
+        </properties>
+    </service>
+</context>

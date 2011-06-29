@@ -29,7 +29,8 @@ require_once __DIR__.'/../../../../../../bootstrap.php';
 use Vobla\Container,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Definition\ServiceReference,
-    Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder;
+    Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder,
+    Vobla\ServiceConstruction\Definition\QualifiedReference;
 
 /**
  *
@@ -65,19 +66,46 @@ class ServiceProcessorTest extends \PHPUnit_Framework_TestCase
 <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xmlns="http://vobla-project.org/xsd/context"
  xmlns:foo="fooNs">
-    <ref id="fo"></ref>
+    <ref id="fooId"></ref>
+    <ref qualifier="fooQc"></ref>
 </context>
 XML;
 
         $xmlContext = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
         $xmlChildren = $xmlContext->children();
-        $refXml = $xmlChildren[0];
+        $ref1Xml = $xmlChildren[0];
+        $ref2Xml = $xmlChildren[1];
 
-        $result = $this->sp->parseRef($refXml);
+        /* @var \Vobla\ServiceConstruction\Definition\ServiceReference $result */
+        $result = $this->sp->parseRef($ref1Xml);
         $this->assertType(
             ServiceReference::clazz(),
             $result,
-            sprintf('%s::parseRef must return an instance of %s', ServiceProcessor::clazz(), ServiceReference::clazz())
+            sprintf(
+                '%s::parseRef must return an instance of %s when ID attribute is present',
+                ServiceProcessor::clazz(), ServiceReference::clazz()
+            )
+        );
+        $this->assertEquals(
+            $result->getServiceId(),
+            'fooId',
+            "ServiceReference ID doesn't match"
+        );
+
+        /* @var \Vobla\ServiceConstruction\Definition\QualifiedReference $result */
+        $result = $this->sp->parseRef($ref2Xml);
+        $this->assertType(
+            QualifiedReference::clazz(),
+            $result,
+            sprintf(
+                "%s::parserRef must return an instance of %s when 'qualifier' attribute is provided",
+                ServiceProcessor::clazz(), QualifiedReference::clazz()
+            )
+        );
+        $this->assertEquals(
+            'fooQc',
+            $result->getQualifier(),
+            "Qualifier value doesn't match"
         );
     }
 

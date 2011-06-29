@@ -25,7 +25,8 @@
 namespace Vobla\ServiceConstruction\Builders\XmlBuilder;
 
 use Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor,
-    Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ConfigProcessor;
+    Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ConfigProcessor,
+    Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Import\ImportProcessor;
 
 /**
  *
@@ -41,6 +42,7 @@ class DefaultProcessorsProvider implements ProcessorsProvider
     public function __construct()
     {
         $this->processors = array(
+            new ImportProcessor(),
             new ServiceProcessor(),
             new ConfigProcessor()
         );
