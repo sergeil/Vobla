@@ -7,6 +7,10 @@ cd src/vendor/Doctrine
 git checkout 3.0.x
 git pull
 
+cd ../Moko
+git checkout master
+git pull
+
 echo
 echo
 echo --------------------------------------------------------
