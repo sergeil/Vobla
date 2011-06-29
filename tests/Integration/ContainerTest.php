@@ -59,7 +59,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
     public function testItWithAnnotations()
     {
-        $container = new Container(new Configuration());
+        $container = new Container();
 
         $ab = new AnnotationsBuilder();
         $skippedFilesWithExceptions = $ab->processPath($container, __DIR__.'/fixtures');
@@ -79,7 +79,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
     public function testItWithXmls()
     {
-        $container = new Container(new Configuration());
+        $container = new Container();
 
         $xb = new XmlBuilder();
 

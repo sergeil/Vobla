@@ -63,10 +63,13 @@ class Container
      */
     protected $configuration;
 
-    public function __construct(Configuration $configuration)
+    public function __construct($configuration = null)
     {
-        $configuration->validate();
-        $this->setConfiguration($configuration);
+        if (null === $configuration) {
+            $cfg = new Configuration();
+            $cfg->validate();
+            $this->setConfiguration($cfg);
+        }
     }
     
     public function setContext(Context $context)
