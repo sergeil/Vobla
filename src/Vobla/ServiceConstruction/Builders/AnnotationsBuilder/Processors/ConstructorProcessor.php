@@ -62,13 +62,15 @@ class ConstructorProcessor implements Processor
     {
         try {
             return $this->doDereferenceConstructorParams($reflMethod, $constructorParams);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new Exception(
                 sprintf(
                     'Failed to process annotations for constructor method %s::%s".',
                     $reflMethod->getDeclaringClass()->getName(),
                     $reflMethod->getName()
-                )
+                ),
+                null,
+                $e
             );
         }
     }

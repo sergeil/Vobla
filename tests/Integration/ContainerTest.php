@@ -26,9 +26,14 @@ namespace Vobla;
 
 require_once __DIR__.'/../bootstrap.php';
 
-require_once __DIR__ . '/fixtures/Foo.php';
-require_once __DIR__ . '/fixtures/Bar.php';
-require_once __DIR__ . '/fixtures/FooBar.php';
+//require_once __DIR__ . '/fixtures/Foo.php';
+//require_once __DIR__ . '/fixtures/Bar.php';
+//require_once __DIR__ . '/fixtures/FooBar.php';
+
+require_once __DIR__.'/fixtures/RootService.php';
+require_once __DIR__.'/fixtures/LoggerFactory.php';
+require_once __DIR__.'/fixtures/CacheMap.php';
+
 
 use Vobla\Container,
     Vobla\Configuration,
@@ -44,12 +49,30 @@ use Vobla\Container,
  */ 
 class ContainerTest extends \PHPUnit_Framework_TestCase
 {
+    private function printException(\Exception $e)
+    {
+        echo $e->getMessage()."\n";
+        if ($e->getPrevious() !== null) {
+            $this->printException($e->getPrevious());
+        }
+    }
+
     public function testItWithAnnotations()
     {
         $container = new Container(new Configuration());
 
         $ab = new AnnotationsBuilder();
-        $ab->processPath($container, __DIR__.'/fixtures');
+        $skippedFilesWithExceptions = $ab->processPath($container, __DIR__.'/fixtures');
+        $skippedClassNames = array();
+        foreach ($skippedFilesWithExceptions as $entry) {
+            $skippedClassNames[] = $entry[0];
+        }
+
+        $this->assertEquals(
+            array(),
+            $skippedClassNames,
+            'No files must have been skipped during scanning.'
+        );
 
         $this->tc($container);
     }
@@ -74,10 +97,16 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
     protected function tc(Container $container)
     {
-        /* @var FooService $fooService */
-        $fooService = $container->getServiceById('fooService');
-        $this->assertType('Foo', $fooService);
-        $this->assertType('Bar', $fooService->bar);
-        $this->assertType('FooBar', $fooService->foobar);
+        /* @var RootService $rootService1 */
+        $rootService1 = $container->getServiceById('rootService');
+        $this->assertType('RootService', $rootService1);
+
+        $rootService2 = $container->getServiceById('rootService');
+        $this->assertType('RootService', $rootService2);
+
+        $this->assertNotSame($rootService1, $rootService2);
+
+        $this->assertType('LoggerFactory', $rootService1->loggerFactory);
+        $this->assertType('CacheMap', $rootService1->cacheMap);
     }
 }

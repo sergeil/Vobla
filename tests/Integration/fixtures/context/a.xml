@@ -2,12 +2,15 @@
          xmlns="http://vobla-project.org/xsd/context">
     <import resource="b.xml" />
 
-    <service id="fooService" class-name="Foo" scope="prototype">
+    <service id="rootService" class-name="RootService" factory-method="__construct" scope="prototype">
+        <constructor>
+            <arg>
+                <ref qualifier="loggingFacility" />
+            </arg>
+        </constructor>
+
         <properties>
-            <property name="bar" ref="barService" />
-            <property name="foobar">
-                <ref qualifier="foobarQlr" />
-            </property>
+            <property name="cacheMap" ref="cacheMap" />
         </properties>
     </service>
 </context>

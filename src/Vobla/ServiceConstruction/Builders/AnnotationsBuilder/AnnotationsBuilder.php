@@ -29,7 +29,8 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
     Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Builders\ServiceIdGenerator,
     Vobla\Container,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ScanPathsProvider;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ScanPathsProvider,
+    Vobla\Exception;
 
 /**
  *
@@ -148,8 +149,18 @@ class AnnotationsBuilder
         }
 
         $definition = new ServiceDefinition();
+
+
         foreach ($this->getProcessors() as $processor) {
-            $processor->handle($this->getAnnotationReader(), $reflClass, $definition);
+            try {
+                $processor->handle($this->getAnnotationReader(), $reflClass, $definition);
+            } catch (\Exception $e) {
+                throw new Exception(
+                    sprintf('Execution of "%s" processor failed.', get_class($processor)),
+                    null,
+                    $e
+                );
+            }
         }
 
         $serviceId = $this->getServiceIdGenerator()->generate($reflClass, $serviceAnnotation->id, $definition);
@@ -197,7 +208,10 @@ class AnnotationsBuilder
                     }
                 }
             } catch (\Exception $e) {
-                $skippedFiles[] = $file->getFilename();
+                $skippedFiles[] = array(
+                    $file->getFilename(),
+                    $e
+                );
             }
         }
 

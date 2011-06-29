@@ -27,6 +27,7 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
+ * Used inside of {@class Constructor}::params' field.
  *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
