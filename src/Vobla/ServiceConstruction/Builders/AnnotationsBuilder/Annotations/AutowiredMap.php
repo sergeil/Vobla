@@ -23,24 +23,12 @@
  */
 
 namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
-
-use Doctrine\Common\Annotations\Annotation;
-
 /**
- * Declares a reference to another service.
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class Autowired extends Annotation
+class AutowiredMap 
 {
-    public $id;
-
-    public $qualifier;
-
     public $type;
 
-    static public function clazz()
-    {
-        return get_called_class();
-    }
+    public $tag;
 }

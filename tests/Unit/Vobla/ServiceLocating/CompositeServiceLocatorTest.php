@@ -55,17 +55,17 @@ class CompositeServiceLocatorTest extends \PHPUnit_Framework_TestCase
 
     protected function createMockContainer($locators)
     {
-        $sl = $this->mf->createTestCaseAware(ServiceLocatorsProvider::CLAZZ)->addMethod('getServiceLocators', function() use($locators) {
-            return $locators;
-        }, 1)->createMock();
+        $sl = $this->mf->createTestCaseAware(ServiceLocatorsProvider::CLAZZ)
+        ->addMethod('getServiceLocators', $locators, 1)
+        ->createMock();
 
-        $cfg = $this->mf->createTestCaseAware(Configuration::clazz())->addMethod('getServiceLocatorsProvider', function() use($sl) {
-            return $sl;
-        }, 1)->createMock();
+        $cfg = $this->mf->createTestCaseAware(Configuration::clazz())
+        ->addMethod('getServiceLocatorsProvider', $sl, 1)
+        ->createMock();
 
-        $ctr = $this->mf->createTestCaseAware(Container::clazz())->addMethod('getConfiguration', function() use($cfg) {
-            return $cfg;
-        }, 1)->createMock();
+        $ctr = $this->mf->createTestCaseAware(Container::clazz())
+        ->addMethod('getConfiguration', $cfg, 1)
+        ->createMock();
 
         return $ctr;
     }
@@ -90,8 +90,13 @@ class CompositeServiceLocatorTest extends \PHPUnit_Framework_TestCase
             );
         };
 
-        $l1 = $this->mf->createTestCaseAware(ServiceLocator::CLAZZ)->addMethod('analyze', $callback, 1)->createMock();
-        $l2 = $this->mf->createTestCaseAware(ServiceLocator::CLAZZ)->addMethod('analyze', $callback, 1)->createMock();
+        $l1 = $this->mf->createTestCaseAware(ServiceLocator::CLAZZ)
+        ->addMethod('analyze', $callback, 1)
+        ->createMock();
+        
+        $l2 = $this->mf->createTestCaseAware(ServiceLocator::CLAZZ)
+        ->addMethod('analyze', $callback, 1)
+        ->createMock();
 
         $csl = new CompositeServiceLocator();
         $csl->init($this->createMockContainer(array($l1, $l2)));
@@ -105,36 +110,35 @@ class CompositeServiceLocatorTest extends \PHPUnit_Framework_TestCase
         
         $criteria = new \stdClass();
 
-        $clk = function($self, $argCriteria) use($tc, $criteria) {
+        $clk1 = function($self, $argCriteria) use($tc, $criteria) {
             $tc->assertSame(
                 $criteria,
                 $argCriteria,
                 'CompositeServiceLocator should pass the same instance of criteria to all aggregated locators.'
             );
 
-            return false;
+            return array('fooId');
         };
-        $clkReturn = function($self, $argCriteria) use($tc, $criteria) {
+        $clk2 = function($self, $argCriteria) use($tc, $criteria) {
             $tc->assertSame(
                 $criteria,
                 $argCriteria,
                 'CompositeServiceLocator should pass the same instance of criteria to all aggregated locators.'
             );
 
-            return 'fooId';
+            return array('barId');
         };
 
-        $l1 = $this->mf->createTestCaseAware(ServiceLocator::CLAZZ)->addMethod('locate', $clk, 1)->createMock(array(), 'm1');
-        $l2 = $this->mf->createTestCaseAware(ServiceLocator::CLAZZ)->addMethod('locate', $clkReturn, 1)->createMock(array(), 'm2');
-        $l3 = $this->mf->createTestCaseAware(ServiceLocator::CLAZZ)->addMethod('locate', $clk, 0)->createMock(array(), 'm3');
-
+        $l1 = $this->mf->createTestCaseAware(ServiceLocator::CLAZZ)->addMethod('locate', $clk1, 1)->createMock(array(), 'm1');
+        $l2 = $this->mf->createTestCaseAware(ServiceLocator::CLAZZ)->addMethod('locate', $clk2, 1)->createMock(array(), 'm2');
+        
         $csl = new CompositeServiceLocator();
-        $csl->init($this->createMockContainer(array($l1, $l2, $l3)));
+        $csl->init($this->createMockContainer(array($l1, $l2)));
 
         $this->assertEquals(
-            'fooId',
+            array('fooId', 'barId'),
             $csl->locate($criteria),
-            'CompositeServiceLocator was not able to return proper location-result. It seems that it didn\'t delegate return value of one of aggragated locators.'
+            'CompositeServiceLocator was not able to return proper location-result. It seems that it didn\'t delegate return value of one of aggregated locators.'
         );
     }
 }

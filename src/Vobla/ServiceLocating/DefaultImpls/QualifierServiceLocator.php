@@ -62,10 +62,10 @@ class QualifierServiceLocator extends AbstractServiceLocator
         $matches = array();
         if (preg_match('/^byQualifier:(.*)$/', $criteria, $matches)) {
             $qlr = $matches[1];
-            return isset($this->lookup[$qlr]) ? $this->lookup[$qlr] : null;
+            return isset($this->lookup[$qlr]) ? array($this->lookup[$qlr]) : false;
         }
 
-        return null;
+        return array();
     }
 
     /**

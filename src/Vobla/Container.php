@@ -187,13 +187,19 @@ class Container
 
     public function getServiceByQualifier($qualifier)
     {
-        $id = $this->getServiceLocator()->locate(QualifierServiceLocator::createCriteria($qualifier));
-        if (false !== $id) {
-            return $this->getServiceById($id);
+        $result = $this->getServiceLocator()->locate(QualifierServiceLocator::createCriteria($qualifier));
+        if (sizeof($result) > 1) {
+            throw new Exception(
+                sprintf(
+                    'Only one service must correspond to a qualifier, but several were found: %s',
+                    implode(', ', $result)
+                )
+            );
+        } else if (sizeof($result) == 0) {
+            throw new ServiceNotFoundException("Unable to find a service by qualifier '$qualifier'.");
         }
-        
-        throw new ServiceNotFoundException("Unable to find a service by qualifier '$qualifier'.");
 
+        return $this->getServiceById($result[0]);
     }
         
     static public function clazz()

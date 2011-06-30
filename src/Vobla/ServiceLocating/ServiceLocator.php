@@ -39,7 +39,7 @@ interface ServiceLocator
 
     /**
      * @param mixed $criteria
-     * @return string|false  Id of a service of FALSE
+     * @return array
      */
     public function locate($criteria);
 

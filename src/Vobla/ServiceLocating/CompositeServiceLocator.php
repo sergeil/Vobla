@@ -54,14 +54,15 @@ class CompositeServiceLocator extends AbstractServiceLocator
      */
     public function locate($criteria)
     {
+        $result = array();
         foreach ($this->cachedLocators as $locator) {
-            $result = $locator->locate($criteria);
-            if ($result !== false) {
-                return $result;
-            }
+            $result = array_merge(
+                $result,
+                $locator->locate($criteria)
+            );
         }
 
-        return false;
+        return $result;
     }
 
     public function analyze($id, ServiceDefinition $serviceDefinition)

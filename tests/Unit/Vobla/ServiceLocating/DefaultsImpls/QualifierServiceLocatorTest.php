@@ -67,16 +67,17 @@ class QualifierServiceLocatorTest extends \PHPUnit_Framework_TestCase
         $id = 'fooId';
         $qlr = 'fooQlr';
 
-        $this->assertNull($this->locator->locate(QSL::createCriteria($qlr)));
+        $this->assertFalse($this->locator->locate(QSL::createCriteria($qlr)));
 
-        $def = $this->mf->createTestCaseAware(ServiceDefinition::clazz())->addMethod('getQualifier', function() use ($qlr) {
-            return $qlr;
-        }, 1)->createMock();
+        $def = $this->mf->createTestCaseAware(ServiceDefinition::clazz())
+        ->addMethod('getQualifier', $qlr, 1)
+        ->createMock();
 
         $this->locator->analyze($id, $def);
-        $this->locator->locate(
-            'fooId',
-            QSL::createCriteria($qlr),
+        
+        $this->assertEquals(
+            array($id),
+            $this->locator->locate(QSL::createCriteria($qlr)),
             sprintf('For some reason "%s" was unable to register and locate a service.', QSL::clazz())
         );
     }
