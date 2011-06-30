@@ -30,13 +30,14 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
     Vobla\ServiceConstruction\Builders\ServiceIdGenerator,
     Vobla\Container,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ScanPathsProvider,
-    Vobla\Exception;
+    Vobla\Exception,
+    Vobla\ServiceConstruction\Builders\AbstractBuilder;
 
 /**
  *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class AnnotationsBuilder 
+class AnnotationsBuilder extends AbstractBuilder
 {
     /**
      * @var \Doctrine\Common\Annotations\AnnotationReader
@@ -47,11 +48,6 @@ class AnnotationsBuilder
      * @var \Vobla\ServiceConstruction\Builders\ServiceIdGenerator
      */
     protected $serviceIdGenerator;
-
-    /**
-     * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ProcessorsProvider
-     */
-    protected $processorsProvider;
 
     /**
      * @var array
@@ -78,17 +74,11 @@ class AnnotationsBuilder
     }
 
     /**
-     * @var array
+     * @return mixed
      */
-    protected $cachedProcessors;
-
-    public function __construct($processorsProvider = null)
+    protected function getDefaultProcessorsProvider()
     {
-        if (null === $processorsProvider) {
-            $this->processorsProvider = new DefaultProcessorsProvider();
-        } else {
-            $this->processorsProvider = $processorsProvider;
-        }
+        return new DefaultProcessorsProvider();
     }
 
     /**
@@ -127,17 +117,6 @@ class AnnotationsBuilder
 
         return $this->serviceIdGenerator;
     }
-
-    public function getProcessors()
-    {
-        if (null === $this->cachedProcessors) {
-            $this->cachedProcessors = $this->processorsProvider->getProcessors();
-
-            // TODO throw an exception if no processors provided
-        }
-
-        return $this->cachedProcessors;
-    }
     
     public function processClass($clazz)
     {
@@ -149,8 +128,7 @@ class AnnotationsBuilder
         }
 
         $definition = new ServiceDefinition();
-
-
+        
         foreach ($this->getProcessors() as $processor) {
             try {
                 $processor->handle($this->getAnnotationReader(), $reflClass, $definition);

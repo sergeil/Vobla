@@ -31,6 +31,11 @@ namespace Vobla\ServiceConstruction\Builders;
 abstract class AbstractBuilder
 {
     /**
+     * @var mixed
+     */
+    protected $processorsProvider;
+
+    /**
      * @var \Vobla\ServiceConstruction\Builders\ServiceIdGenerator
      */
     protected $serviceIdGenerator;
@@ -40,18 +45,30 @@ abstract class AbstractBuilder
      */
     protected $cachedProcessors;
 
+    public function getProcessorsProvider()
+    {
+        return $this->processorsProvider;
+    }
+
     /**
      * @return array
      */
     public function getProcessors()
     {
         if (null === $this->cachedProcessors) {
-            $this->cachedProcessors = $this->processorsProvider->getProcessors();
+            foreach ($this->processorsProvider->getProcessors() as $processor) {
+                $this->cachedProcessors[get_class($processor)] = $processor;
+            }
 
             // TODO throw an exception if no processors provided
         }
 
-        return $this->cachedProcessors;
+        return array_values($this->cachedProcessors);
+    }
+
+    public function getProcessor($processorFqcn)
+    {
+        return isset($this->cachedProcessors[$processorFqcn]) ? $this->cachedProcessors[$processorFqcn] : null;
     }
 
     public function setServiceIdGenerator($serviceIdGenerator)
@@ -83,5 +100,15 @@ abstract class AbstractBuilder
         } else {
             $this->processorsProvider = $processorsProvider;
         }
+    }
+
+
+
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
     }
 }
