@@ -74,12 +74,4 @@ class XmlBuilder extends AbstractBuilder
             $processor->processXml($xmlBody, $container, $this);
         }
     }
-
-    /**
-     * @return string
-     */
-    static public function clazz()
-    {
-        return get_called_class();
-    }
 }

@@ -101,9 +101,7 @@ abstract class AbstractBuilder
             $this->processorsProvider = $processorsProvider;
         }
     }
-
-
-
+    
     /**
      * @return string
      */
