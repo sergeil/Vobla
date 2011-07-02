@@ -28,15 +28,42 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
     Doctrine\Common\Annotations\AnnotationReader,
-    Vobla\ServiceConstruction\Definition\QualifiedReference,
-    Vobla\ServiceConstruction\Definition\ServiceReference;
+    Vobla\ServiceConstruction\Definition\References\QualifiedReference,
+    Vobla\ServiceConstruction\Definition\References\IdReference,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredSet,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredMap,
+    Vobla\ServiceConstruction\Definition\References\TagReference,
+    Vobla\ServiceConstruction\Definition\References\TypeReference,
+    Vobla\ServiceConstruction\Builders\InjectorsOrderResolver,
+    Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
+    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class PropertiesProcessor implements Processor
+class PropertiesProcessor extends AbstractProcessor
 {
+    /**
+     * @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver
+     */
+    protected $injectorsOrderResolver;
+
+    /**
+     * @param \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $injectorsOrderResolver
+     */
+    public function setInjectorsOrderResolver(InjectorsOrderResolver $injectorsOrderResolver)
+    {
+        $this->injectorsOrderResolver = $injectorsOrderResolver;
+    }
+
+    /**
+     * @return \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver
+     */
+    public function getInjectorsOrderResolver()
+    {
+        return $this->injectorsOrderResolver;
+    }
+
     public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)
     {
         $result = $serviceClasses = array();
@@ -55,22 +82,85 @@ class PropertiesProcessor implements Processor
             }
 
             /* @var Annotations\Autowired $autowiredAnnotation */
-            $autowiredAnnotation = $annotationReader->getPropertyAnnotation($reflProp, Autowired::clazz());
-            if (!$autowiredAnnotation) {
+            $awAnn = $annotationReader->getPropertyAnnotation($reflProp, Autowired::clazz());
+            $awSetAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredSet::clazz());
+            $awMapAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredMap::clazz());
+
+            if (!$awAnn && !$awSetAnn && !$awMapAnn) {
                 continue;
             }
 
-            $refDef = null;
-            if ($autowiredAnnotation->qualifier !== null) { // qualifier has priority
-                $refDef = new QualifiedReference($autowiredAnnotation->qualifier);
-            } else {
-                $refServiceId = $autowiredAnnotation->id === null ? $reflProp->getName() : $autowiredAnnotation->id;
-                $refDef = new ServiceReference($refServiceId);
+            $refDef = array();
+            if ($awAnn) {
+                $refDef = $this->handleAutowired($reflProp, $awAnn);
+            } else if ($awSetAnn) {
+                $refDef = $this->handleAutowiredSet($reflProp, $awSetAnn);
+            } else if ($awMapAnn) {
+                $refDef = $this->handleAutowiredMap($reflProp, $awMapAnn);
             }
-
             $result[$reflProp->getName()] = $refDef;
         }
 
         $serviceDefinition->setArguments($result);
+    }
+
+    protected function handleAutowired(\ReflectionProperty $reflProp, Autowired $awAnn)
+    {
+        /* @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $ior */
+        $ior = clone $this->getInjectorsOrderResolver();
+        $ior->setByIdCallback(function() use($reflProp, $awAnn) {
+            $refServiceId = $awAnn->id === null ? $reflProp->getName() : $awAnn->id;
+            return new IdReference($refServiceId, $awAnn->isOptional);
+        });
+        $ior->setByQualifierCallback(function() use($awAnn) {
+            if ($awAnn->qualifier) {
+                return new QualifiedReference($awAnn->qualifier, $awAnn->isOptional);
+            }
+        });
+        $ior->setByTagCallback(function() use($awAnn) {
+            if ($awAnn->tag) {
+                return new TagReference($awAnn->tag, $awAnn->isOptional);
+            }
+        });
+        $ior->setByTypeCallback(function() use($awAnn) {
+            if ($awAnn->type) {
+                return new TypeReference($awAnn->type, $awAnn->isOptional);
+            }
+        });
+
+        return $ior->resolve();
+    }
+
+    protected function handleAutowiredSet(\ReflectionProperty $reflProp, AutowiredSet $awSetAnn)
+    {
+        return $this->createInjectorsOrderResolverForCollection($awSetAnn, 'set')->resolve();
+    }
+
+    protected function handleAutowiredMap(\ReflectionProperty $reflProp, AutowiredMap $awMapAnn)
+    {
+        return $this->createInjectorsOrderResolverForCollection($awMapAnn, 'map')->resolve();
+    }
+
+    /**
+     * @param mixed $annotation
+     * @param string $type  set or map
+     * @return \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver
+     */
+    private function createInjectorsOrderResolverForCollection($annotation, $type)
+    {
+        /* @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $ior */
+        $ior = clone $this->getInjectorsOrderResolver();
+        $ior->setByTagCallback(function() use($annotation, $type) {
+            if ($annotation->tags) {
+                return new TagsCollectionReference($annotation->tags, $type);
+            }
+        });
+        $ior->setByTypeCallback(function() use($annotation, $type) {
+            if ($annotation->type) {
+                return new TypeCollectionReference($annotation->type, $type);
+            }
+        });
+
+        return $ior;
     }
 }

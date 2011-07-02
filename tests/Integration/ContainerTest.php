@@ -49,14 +49,6 @@ use Vobla\Container,
  */ 
 class ContainerTest extends \PHPUnit_Framework_TestCase
 {
-    private function printException(\Exception $e)
-    {
-        echo $e->getMessage()."\n";
-        if ($e->getPrevious() !== null) {
-            $this->printException($e->getPrevious());
-        }
-    }
-
     public function testItWithAnnotations()
     {
         $container = new Container();

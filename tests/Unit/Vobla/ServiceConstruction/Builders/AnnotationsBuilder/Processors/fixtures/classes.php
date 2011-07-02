@@ -163,3 +163,117 @@ class ClassWithNoId
         return get_called_class();
     }
 }
+
+/**
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("fooTag")
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("barTag")
+ */
+class ClassWithTags
+{
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}
+
+/**
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("foo-fooTag")
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("bar-barTag")
+ */
+class AnotherClassWithTags extends ClassWithTags
+{
+
+}
+
+/**
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Qualifier("fooQualifier")
+ */
+class ClassWithQualifier
+{
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}
+
+// ----
+
+/**
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ */
+class AutowiringClass
+{
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(
+     *     id="fooId",
+     *     qualifier="fooQualifier",
+     *     type="fooType",
+     *     tag="fooTag"
+     * )
+     */
+    protected $foo;
+
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredSet(
+     *     type="fooType",
+     *     tags={"fooTag1", "fooTag2"}
+     * )
+     */
+    protected $fooSet;
+
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredMap(
+     *     type="fooType",
+     *     tags={"fooTag1", "fooTag2"}
+     * )
+     */
+    protected $fooMap;
+
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}
+
+/**
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ */
+class GeneralizedAutowiringClass extends AutowiringClass
+{
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(
+     *     id="barId",
+     *     qualifier="barQualifier",
+     *     type="barType",
+     *     tag="barTag"
+     * )
+     */
+    protected $bar;
+
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredSet(
+     *     type="barType",
+     *     tags={"barTag1", "barTag2"}
+     * )
+     */
+    protected $barSet;
+
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredMap(
+     *     type="barType",
+     *     tags={"barTag1", "barTag2"}
+     * )
+     */
+    protected $barMap;
+}

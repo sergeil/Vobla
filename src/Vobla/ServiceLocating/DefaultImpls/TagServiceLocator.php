@@ -22,43 +22,55 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
+namespace Vobla\ServiceLocating\DefaultImpls;
 
-use Vobla\Container,
+use Vobla\ServiceLocating\AbstractServiceLocator,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
  *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
- */ 
-abstract class AbstractServiceLocator implements ServiceLocator
+ */
+class TagServiceLocator extends AbstractServiceLocator
 {
-    /**
-     * @var \Vobla\Container
-     */
-    protected $container;
+    static public function createCriteria($qualifier)
+    {
+        return "byTag:$qualifier";
+    }
 
     /**
-     * @return \Vobla\Container
+     * @var array
      */
-    public function getContainer()
+    protected $lookup;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function analyze($id, ServiceDefinition $serviceDefinition)
     {
-        return $this->container;
+        $tags = $serviceDefinition->getMetaEntry('tags');
+        if ($tags && is_array($tags)) {
+            foreach ($tags as $tag) {
+                if (!isset($this->lookup[$tag])) {
+                    $this->lookup[$tag] = array();
+                }
+                $this->lookup[$tag][] = $id;
+            }
+        }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function init(Container $container)
+    public function locate($criteria)
     {
-        $this->container = $container;
+        $matches = array();
+        if (preg_match('/^byTag:(.*)$/', $criteria, $matches)) {
+            $tag = $matches[1];
+            return isset($this->lookup[$tag]) ? $this->lookup[$tag] : array();
+        }
+
+        return array();
     }
 
-    /**
-     * @return string
-     */
-    static public function clazz()
-    {
-        return get_called_class();
-    }
 }

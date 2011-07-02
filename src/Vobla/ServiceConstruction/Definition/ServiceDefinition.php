@@ -73,7 +73,12 @@ class ServiceDefinition
     /**
      * @var string
      */
-    private $qualifier;
+    private $qualifier; // TODO move to 'meta'
+
+    /**
+     * @var array
+     */
+    private $meta;
     
     /**
      * @param array $arguments
@@ -219,8 +224,30 @@ class ServiceDefinition
         return $this->scope;
     }
 
+    public function setMeta($meta)
+    {
+        $this->meta = $meta;
+    }
+
+    public function getMeta()
+    {
+        return $this->meta;
+    }
+
+    public function setMetaEntry($name, $value)
+    {
+        $this->meta[$name] = $value;
+    }
+
+    public function getMetaEntry($name)
+    {
+        return isset($this->meta[$name]) ? $this->meta[$name] : null;
+    }
+
     static public function clazz()
     {
         return get_called_class();
     }
+
+
 }

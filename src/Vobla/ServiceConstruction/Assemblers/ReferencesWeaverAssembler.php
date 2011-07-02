@@ -25,10 +25,10 @@
 namespace Vobla\ServiceConstruction\Assemblers;
 
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Vobla\ServiceConstruction\Assemblers\Injection\ReferenceInjector;
+    Vobla\ServiceConstruction\Assemblers\Injection\ReferenceInjector,
+    Vobla\Exception;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class ReferencesWeaverAssembler extends AbstractReferenceWeaverAssembler
@@ -38,7 +38,7 @@ class ReferencesWeaverAssembler extends AbstractReferenceWeaverAssembler
      */
     protected $referenceInjector;
 
-   /**
+    /**
      * @param \Vobla\ServiceConstruction\Assemblers\Injection\ReferenceInjector $referenceInjector
      */
     public function setReferenceInjector($referenceInjector)
@@ -64,11 +64,19 @@ class ReferencesWeaverAssembler extends AbstractReferenceWeaverAssembler
      */
     public function execute(AssemblersManager $assemblersManager, ServiceDefinition $definition, $obj = null)
     {
-        foreach ($definition->getArguments() as $paramName=>$paramValue) {
-            $value = $this->derefenceParameter($paramValue);
-            $this->getReferenceInjector()->inject($obj, $paramName, $value, $definition);
-        }
+        try {
+            foreach ($definition->getArguments() as $paramName => $paramValue) {
+                $value = $this->derefenceParameter($paramValue);
+                $this->getReferenceInjector()->inject($obj, $paramName, $value, $definition);
+            }
 
-        return $assemblersManager->proceed($definition, $obj);
+            return $assemblersManager->proceed($definition, $obj);
+        } catch (\Exception $e) {
+            throw new Exception(
+                sprintf('An error occurred while trying to deference service properties.'),
+                null,
+                $e
+            );
+        }
     }
 }

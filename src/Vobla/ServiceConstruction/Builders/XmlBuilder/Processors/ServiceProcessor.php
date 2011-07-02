@@ -28,8 +28,8 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\Exception,
-    Vobla\ServiceConstruction\Definition\ServiceReference,
-    Vobla\ServiceConstruction\Definition\QualifiedReference;
+    Vobla\ServiceConstruction\Definition\References\IdReference,
+    Vobla\ServiceConstruction\Definition\References\QualifiedReference;
 
 /**
  *
@@ -113,7 +113,7 @@ class ServiceProcessor implements Processor
         $refAttrsXml = $refXml->attributes();
 
         if (isset($refAttrsXml['id'])) {
-            return new ServiceReference((string)$refAttrsXml['id']);
+            return new IdReference((string)$refAttrsXml['id']);
         } else if (isset($refAttrsXml['qualifier'])) {
             return new QualifiedReference((string)$refAttrsXml['qualifier']);
         }
@@ -271,7 +271,7 @@ class ServiceProcessor implements Processor
 
         $propertyValue = null;
         if (isset($propertyAttrsXml['ref'])) { // ref has the highest priority
-            $propertyValue = new ServiceReference((string)$propertyAttrsXml['ref']);
+            $propertyValue = new IdReference((string)$propertyAttrsXml['ref']);
         } else if (isset($propertyAttrsXml['value'])) { // value has priority over inline body
             if (isset($propertyAttrsXml['type'])) {
                 $propertyValue = $this->castServicePropertiesPropertyTagValue(

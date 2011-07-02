@@ -25,7 +25,6 @@
 namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 abstract class AbstractProcessor implements Processor

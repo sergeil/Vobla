@@ -26,7 +26,9 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder;
 
 use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\GeneralAttributesProcessor,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\ConstructorProcessor,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\PropertiesProcessor;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\PropertiesProcessor,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TagsProcessor,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\QualifierProcessor;
 
 /**
  *
@@ -44,7 +46,9 @@ class DefaultProcessorsProvider implements ProcessorsProvider
         $this->processors = array(
             new GeneralAttributesProcessor(),
             new ConstructorProcessor(),
-            new PropertiesProcessor()
+            new PropertiesProcessor(),
+            new QualifierProcessor(),
+            new TagsProcessor()
         );
     }
 

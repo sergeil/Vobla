@@ -29,9 +29,14 @@ require_once __DIR__.'/fixtures/classes.php';
 
 use Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Vobla\ServiceConstruction\Definition\ServiceReference,
-    Vobla\ServiceConstruction\Definition\QualifiedReference,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired;
+    Vobla\ServiceConstruction\Definition\References\IdReference,
+    Vobla\ServiceConstruction\Definition\References\QualifiedReference,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
+    Vobla\ServiceConstruction\Builders\InjectorsOrderResolver,
+    Vobla\ServiceConstruction\Definition\References\TypeReference,
+    Vobla\ServiceConstruction\Definition\References\TagReference,
+    Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
+    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference;
 
 /**
  *
@@ -49,54 +54,94 @@ class PropertiesProcessorTest extends \PHPUnit_Framework_TestCase
      */
     protected $ar;
 
+    /**
+     * @var \Moko\MockFactory
+     */
+    protected $mf;
+
     public function setUp()
     {
         $this->pp = new PropertiesProcessor();
         $this->ar = new AnnotationReader();
+        $this->mf = new \Moko\MockFactory($this);
     }
 
     public function tearDown()
     {
         $this->pp = null;
         $this->ar = null;
+        $this->mf = null;
     }
 
     public function testHandle()
     {
         $def = new ServiceDefinition();
 
-        /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $def */
-        $result = $this->pp->handle($this->ar, new \ReflectionClass(SomeDumbService::clazz()), $def);
-        $args = $def->getArguments();
-        $this->assertTrue(is_array($args));
+        $resolved = array();
 
-        if (sizeof($args) == 3) {
-            $this->fail('It seems that annotations from parent class were not taken into account.');
-        } else if (sizeof($args) == 5) {
-            $this->fail(
-                'It looks that annotations from a parent class were taken into account nevertheless the fact it doesn\'t have Service annotation.'
+        $ior = $this->mf->createTestCaseAware(InjectorsOrderResolver::clazz())
+        ->addDelegateMethod('setByIdCallback')
+        ->addDelegateMethod('setByTagCallback')
+        ->addDelegateMethod('setByTypeCallback')
+        ->addDelegateMethod('setByQualifierCallback')
+        ->addDelegateMethod('getByIdCallback')
+        ->addDelegateMethod('getByQualifierCallback')
+        ->addDelegateMethod('getByTypeCallback')
+        ->addDelegateMethod('getByTagCallback')
+        ->addMethod('resolve', function($self) use(&$resolved) {
+            /* @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $self */
+
+            $idCb = $self->getByIdCallback(); /* @var  \Closure $idCb */
+            $qlrCb = $self->getByQualifierCallback(); /* @var  \Closure $qlrCb */
+            $typeCb = $self->getByTypeCallback(); /* @var  \Closure $typeCb */
+            $tagCb = $self->getByTagCallback(); /* @var  \Closure $tagCb */
+
+            $resolved[] = array(
+                'id' => $idCb instanceof \Closure ? $idCb() : null,
+                'qlr' => $qlrCb instanceof \Closure ? $qlrCb() : null,
+                'type' => $typeCb(),
+                'tag' => $tagCb()
             );
-        } else {
-            $this->assertEquals(4, sizeof($args), 'Declared service references were not collected properly.');
-        }
+        }, 6)
+        ->createMock();
 
-        $this->assertTrue(isset($args['ref1x']));
-        $this->assertType(ServiceReference::clazz(), $args['ref1x']);
-        $this->assertEquals('ref1x', $args['ref1x']->getServiceId());
+        $this->pp->setInjectorsOrderResolver($ior);
+        $this->pp->handle($this->ar, new \ReflectionClass(GeneralizedAutowiringClass::clazz()), $def);
+        
+        $this->assertEquals(6, sizeof($resolved));
+        $expectedKeys = array('id', 'qlr', 'type', 'tag');
+        $this->assertEquals(array_keys($resolved[0]), $expectedKeys);
+        $this->assertEquals(array_keys($resolved[1]), $expectedKeys);
 
-        $this->assertTrue(isset($args['ref2x']));
-        $this->assertType(ServiceReference::clazz(), $args['ref2x']);
-        $this->assertEquals('barbaz', $args['ref2x']->getServiceId());
+        $this->doTestResolvedResult($resolved[0], 'bar');
+        $this->doTestResolvedResult($resolved[3], 'foo');
 
-        $this->assertTrue(isset($args['ref3x']));
-        $this->assertType(
-            QualifiedReference::clazz(),
-            $args['ref3x'],
-            sprintf(
-                'When parameter "qualifier" of annotation "%s" is provided an instance of "%s" must be injected in "%s".',
-                Autowired::clazz(), QualifiedReference::clazz(), ServiceDefinition::clazz()
-            )
+        $this->doTestCollectionResult($resolved[1], 'bar', 'set');
+        $this->doTestCollectionResult($resolved[2], 'bar', 'map');
+        $this->doTestCollectionResult($resolved[4], 'foo', 'set');
+        $this->doTestCollectionResult($resolved[5], 'foo', 'map');
+    }
+
+    protected function doTestResolvedResult(array $resolvedEntry, $propertyName)
+    {
+        $this->assertType(IdReference::clazz(), $resolvedEntry['id']);
+        $this->assertEquals($propertyName.'Id', $resolvedEntry['id']->getServiceId());
+        $this->assertType(QualifiedReference::clazz(), $resolvedEntry['qlr']);
+        $this->assertEquals($propertyName.'Qualifier', $resolvedEntry['qlr']->getQualifier());
+        $this->assertType(TypeReference::clazz(), $resolvedEntry['type']);
+        $this->assertEquals($propertyName.'Type', $resolvedEntry['type']->getType());
+        $this->assertType(TagReference::clazz(), $resolvedEntry['tag']);
+        $this->assertEquals($propertyName.'Tag', $resolvedEntry['tag']->getTag());
+    }
+
+    protected function doTestCollectionResult(array $resolvedEntry, $propertyName, $stereotype)
+    {
+        $this->assertType(TypeCollectionReference::clazz(), $resolvedEntry['type']);
+        $this->assertEquals($propertyName.'Type', $resolvedEntry['type']->getType());
+        $this->assertType(TagsCollectionReference::clazz(), $resolvedEntry['tag']);
+        $this->assertEquals(
+            array($propertyName.'Tag1', $propertyName.'Tag2'),
+            $resolvedEntry['tag']->getTags()
         );
-        $this->assertEquals('booz', $args['ref3x']->getQualifier());
     }
 }

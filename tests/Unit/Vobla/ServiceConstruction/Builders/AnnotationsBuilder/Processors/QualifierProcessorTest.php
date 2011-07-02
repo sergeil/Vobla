@@ -22,43 +22,52 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
+namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
-use Vobla\Container,
+require_once __DIR__.'/../../../../../../bootstrap.php';
+require_once __DIR__.'/fixtures/classes.php';
+
+use Doctrine\Common\Annotations\AnnotationReader,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TagsProcessor,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-abstract class AbstractServiceLocator implements ServiceLocator
+class QualifierTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Vobla\Container
+     * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\QualifierProcessor
      */
-    protected $container;
+    protected $qp;
 
     /**
-     * @return \Vobla\Container
+     * @var \Doctrine\Common\Annotations\AnnotationReader
      */
-    public function getContainer()
+    protected $ar;
+
+    public function setUp()
     {
-        return $this->container;
+        $this->qp = new QualifierProcessor();
+        $this->ar = new AnnotationReader();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function init(Container $container)
+    public function tearDown()
     {
-        $this->container = $container;
+        $this->qp = null;
+        $this->ar = null;
     }
 
-    /**
-     * @return string
-     */
-    static public function clazz()
+    public function testHandle()
     {
-        return get_called_class();
+        $rc = new \ReflectionClass(ClassWithQualifier::clazz());
+        $def = new ServiceDefinition();
+
+        $this->qp->handle($this->ar, $rc, $def);
+
+        $this->assertEquals(
+            'fooQualifier', $def->getMetaEntry('qualifier'),
+            "Qualifier doesn't match"
+        );
     }
 }

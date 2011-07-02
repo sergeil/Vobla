@@ -22,43 +22,31 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
+namespace Vobla\ServiceLocating\DefaultImpls;
 
-use Vobla\Container,
+use Vobla\ServiceLocating\AbstractServiceLocator,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
  *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
- */ 
-abstract class AbstractServiceLocator implements ServiceLocator
+ */
+class TypeServiceLocator extends AbstractServiceLocator
 {
     /**
-     * @var \Vobla\Container
+     * {@inheritdoc}
      */
-    protected $container;
-
-    /**
-     * @return \Vobla\Container
-     */
-    public function getContainer()
+    public function analyze($id, ServiceDefinition $serviceDefinition)
     {
-        return $this->container;
+        // TODO: Implement analyze() method.
     }
 
     /**
      * {@inheritdoc}
      */
-    public function init(Container $container)
+    public function locate($criteria)
     {
-        $this->container = $container;
+        // TODO: Implement locate() method.
     }
 
-    /**
-     * @return string
-     */
-    static public function clazz()
-    {
-        return get_called_class();
-    }
 }

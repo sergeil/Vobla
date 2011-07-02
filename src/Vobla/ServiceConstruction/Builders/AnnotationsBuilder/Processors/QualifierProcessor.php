@@ -22,43 +22,25 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
+namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
-use Vobla\Container,
-    Vobla\ServiceConstruction\Definition\ServiceDefinition;
+use Vobla\ServiceConstruction\Definition\ServiceDefinition,
+    Doctrine\Common\Annotations\AnnotationReader,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Qualifier;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-abstract class AbstractServiceLocator implements ServiceLocator
+class QualifierProcessor extends AbstractProcessor
 {
-    /**
-     * @var \Vobla\Container
-     */
-    protected $container;
-
-    /**
-     * @return \Vobla\Container
-     */
-    public function getContainer()
+    public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)
     {
-        return $this->container;
+        /* @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Qualifier $qualifierAnn */
+        $qualifierAnn = $annotationReader->getClassAnnotation($reflClass, Qualifier::clazz());
+        if ($qualifierAnn) {
+            $serviceDefinition->setMetaEntry('qualifier', $qualifierAnn->value);
+        }
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function init(Container $container)
-    {
-        $this->container = $container;
-    }
-
-    /**
-     * @return string
-     */
-    static public function clazz()
-    {
-        return get_called_class();
-    }
 }

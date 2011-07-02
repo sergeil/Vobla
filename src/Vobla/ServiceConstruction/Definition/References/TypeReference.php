@@ -22,40 +22,64 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceConstruction\Definition;
+namespace Vobla\ServiceConstruction\Definition\References;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class ServiceReference
+class TypeReference implements OptionalReference
 {
     /**
      * @var string
      */
-    private $serviceId;
+    protected $type;
 
     /**
-     * @param string $serviceId
+     * @var boolean
      */
-    public function setServiceId($serviceId)
+    private $isOptional;
+    
+    /**
+     * @param string $type
+     */
+    public function setType($type)
     {
-        $this->serviceId = $serviceId;
+        $this->type = $type;
     }
 
     /**
      * @return string
      */
-    public function getServiceId()
+    public function getType()
     {
-        return $this->serviceId;
+        return $this->type;
     }
 
-    public function __construct($serviceId = null)
+    /**
+     * @param boolean $isOptional
+     */
+    public function setOptional($isOptional)
     {
-        $this->setServiceId($serviceId);
+        $this->isOptional = $isOptional;
     }
 
+    /**
+     * @return boolean
+     */
+    public function isOptional()
+    {
+        return $this->isOptional;
+    }
+
+    public function __construct($type = null, $isOptional = null)
+    {
+        $this->type = $type;
+        $this->setOptional($isOptional);
+    }
+
+    /**
+     * @return string
+     */
     static public function clazz()
     {
         return get_called_class();

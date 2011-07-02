@@ -25,8 +25,8 @@
 namespace Vobla\ServiceConstruction\Assemblers;
 
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Vobla\ServiceConstruction\Definition\ServiceReference,
-    Vobla\ServiceConstruction\Definition\QualifiedReference,
+    Vobla\ServiceConstruction\Definition\References\IdReference,
+    Vobla\ServiceConstruction\Definition\References\QualifiedReference,
     Vobla\Exception;
 
 /**
@@ -108,10 +108,18 @@ class ObjectFactoryAssembler extends AbstractReferenceWeaverAssembler
 
     public function execute(AssemblersManager $assemblersManager, ServiceDefinition $definition, $obj = null)
     {
-        $obj = $this->createInstance(
-            $definition,
-            $this->dereferenceConstructorParameters($definition)
-        );
+        try {
+            $obj = $this->createInstance(
+                $definition,
+                $this->dereferenceConstructorParameters($definition)
+            );
+        } catch (\Exception $e) {
+            throw new Exception(
+                $e,
+                null,
+                sprintf('Unable to create an object of type "%s".', $definition->getClassName())
+            );
+        }
         
         return $assemblersManager->proceed($definition, $obj);
     }

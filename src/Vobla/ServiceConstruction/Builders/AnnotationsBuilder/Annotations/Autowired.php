@@ -39,6 +39,10 @@ class Autowired extends Annotation
 
     public $type;
 
+    public $tag;
+
+    public $isOptional = false;
+
     static public function clazz()
     {
         return get_called_class();

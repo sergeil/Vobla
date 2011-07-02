@@ -22,43 +22,14 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
-
-use Vobla\Container,
-    Vobla\ServiceConstruction\Definition\ServiceDefinition;
+namespace Vobla\ServiceConstruction\Definition\References;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-abstract class AbstractServiceLocator implements ServiceLocator
+interface OptionalReference
 {
-    /**
-     * @var \Vobla\Container
-     */
-    protected $container;
+    public function setOptional($optional);
 
-    /**
-     * @return \Vobla\Container
-     */
-    public function getContainer()
-    {
-        return $this->container;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function init(Container $container)
-    {
-        $this->container = $container;
-    }
-
-    /**
-     * @return string
-     */
-    static public function clazz()
-    {
-        return get_called_class();
-    }
+    public function isOptional();
 }

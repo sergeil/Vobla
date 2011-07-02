@@ -22,43 +22,18 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
-
-use Vobla\Container,
-    Vobla\ServiceConstruction\Definition\ServiceDefinition;
+namespace Vobla\Tools;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-abstract class AbstractServiceLocator implements ServiceLocator
+class Toolkit 
 {
-    /**
-     * @var \Vobla\Container
-     */
-    protected $container;
-
-    /**
-     * @return \Vobla\Container
-     */
-    public function getContainer()
+    static public function printException(\Exception $e)
     {
-        return $this->container;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function init(Container $container)
-    {
-        $this->container = $container;
-    }
-
-    /**
-     * @return string
-     */
-    static public function clazz()
-    {
-        return get_called_class();
+        echo $e->getMessage()."\n";
+        if ($e->getPrevious() !== null) {
+            self::printException($e->getPrevious());
+        }
     }
 }

@@ -67,12 +67,4 @@ class QualifierServiceLocator extends AbstractServiceLocator
 
         return array();
     }
-
-    /**
-     * @return string
-     */
-    static public function clazz()
-    {
-        return get_called_class();
-    }
 }

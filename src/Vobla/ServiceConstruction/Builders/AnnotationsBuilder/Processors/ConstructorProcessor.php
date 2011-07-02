@@ -26,9 +26,9 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Doctrine\Common\Annotations\AnnotationReader,
-    Vobla\ServiceConstruction\Definition\ServiceReference,
+    Vobla\ServiceConstruction\Definition\References\IdReference,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor,
-    Vobla\ServiceConstruction\Definition\QualifiedReference,
+    Vobla\ServiceConstruction\Definition\References\QualifiedReference,
     Vobla\Exception;
 
 /**
@@ -100,7 +100,7 @@ class ConstructorProcessor implements Processor
 
         foreach ($dereferencedParams as $paramName=>$value) {
             if ($value === null) {
-                $dereferencedParams[$paramName] = new ServiceReference($paramName);
+                $dereferencedParams[$paramName] = new IdReference($paramName);
             }
         }
 
@@ -112,7 +112,7 @@ class ConstructorProcessor implements Processor
         if ($param->qualifier != null) {
             return new QualifiedReference($param->qualifier);
         } else if ($param->id != null) {
-            return new ServiceReference($param->id);
+            return new IdReference($param->id);
         } else {
             return $this->dereferenceConstructorParam($param);
         }

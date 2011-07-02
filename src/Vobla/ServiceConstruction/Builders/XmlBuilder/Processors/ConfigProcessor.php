@@ -28,7 +28,7 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\Exception,
-    Vobla\ServiceConstruction\Definition\ServiceReference;
+    Vobla\ServiceConstruction\Definition\References\IdReference;
 
 /**
  *

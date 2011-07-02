@@ -27,8 +27,8 @@ namespace Vobla\ServiceConstruction\Assemblers;
 use Vobla\ServiceConstruction\Assemblers\AssemblersManager,
     Vobla\ServiceConstruction\Assemblers\ObjectFactoryAssembler,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Vobla\ServiceConstruction\Definition\ServiceReference,
-    Vobla\ServiceConstruction\Definition\QualifiedReference,
+    Vobla\ServiceConstruction\Definition\References\IdReference,
+    Vobla\ServiceConstruction\Definition\References\QualifiedReference,
     Vobla\Container;
 
 require_once 'fixtures/classes.php';
@@ -96,7 +96,7 @@ class ObjectFactoryAssemblerTest extends \PHPUnit_Framework_TestCase
         $def->setFactoryMethod('__construct');
         $def->setClassName(MockWithDefaultConstructor::clazz());
         $def->setConstructorArguments(array(
-            new ServiceReference('fooService'),
+            new IdReference('fooService'),
             new QualifiedReference('fooQualifiedService')
         ));
 
@@ -119,7 +119,7 @@ class ObjectFactoryAssemblerTest extends \PHPUnit_Framework_TestCase
         $def->setFactoryMethod('fooFactory');
         $def->setClassName(MockWithLocalFactory::clazz());
         $def->setConstructorArguments(array(
-            new ServiceReference('fooService'),
+            new IdReference('fooService'),
             new QualifiedReference('fooQualifiedService')
         ));
 
@@ -156,8 +156,8 @@ class ObjectFactoryAssemblerTest extends \PHPUnit_Framework_TestCase
         $def->setFactoryMethod('barFactory');
         $def->setFactoryService('someFactoryService');
         $def->setConstructorArguments(array(
-            new ServiceReference('fooService'),
-            new ServiceReference('barService')
+            new IdReference('fooService'),
+            new IdReference('barService')
         ));
 
         /* @var \Vobla\ServiceConstruction\Assemblers\MockWithDefaultConstructor $obj */

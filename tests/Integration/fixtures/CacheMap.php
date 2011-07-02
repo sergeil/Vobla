@@ -8,5 +8,10 @@
  */ 
 class CacheMap 
 {
-    
+    /**
+     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredSet(
+     *     type="Cache\CacheDriver"
+     * )
+     */
+    public $cacheDrivers;
 }

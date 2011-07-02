@@ -22,36 +22,52 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
-
-use Vobla\Container,
-    Vobla\ServiceConstruction\Definition\ServiceDefinition;
+namespace Vobla\ServiceConstruction\Definition\References;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-abstract class AbstractServiceLocator implements ServiceLocator
+class TagsCollectionReference 
 {
     /**
-     * @var \Vobla\Container
+     * @var array
      */
-    protected $container;
+    private $tags = array();
 
     /**
-     * @return \Vobla\Container
+     * @var string
      */
-    public function getContainer()
+    private $stereotype;
+    
+    /**
+     * @param array $tags
+     */
+    public function setTags(array $tags)
     {
-        return $this->container;
+        $this->tags = $tags;
     }
 
     /**
-     * {@inheritdoc}
+     * @return array
      */
-    public function init(Container $container)
+    public function getTags()
     {
-        $this->container = $container;
+        return $this->tags;
+    }
+
+    public function setStereotype($stereotype)
+    {
+        $this->stereotype = $stereotype;
+    }
+
+    public function getStereotype()
+    {
+        return $this->stereotype;
+    }
+
+    public function __construct(array $tags)
+    {
+        $this->tags = $tags;
     }
 
     /**

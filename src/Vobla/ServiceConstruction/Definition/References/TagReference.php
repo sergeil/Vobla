@@ -22,36 +22,48 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
-
-use Vobla\Container,
-    Vobla\ServiceConstruction\Definition\ServiceDefinition;
+namespace Vobla\ServiceConstruction\Definition\References;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-abstract class AbstractServiceLocator implements ServiceLocator
+class TagReference implements OptionalReference
 {
     /**
-     * @var \Vobla\Container
+     * @var string
      */
-    protected $container;
-
-    /**
-     * @return \Vobla\Container
-     */
-    public function getContainer()
+    protected $tag;
+    
+    public function setTag($tag)
     {
-        return $this->container;
+        $this->tag = $tag;
+    }
+
+    public function getTag()
+    {
+        return $this->tag;
     }
 
     /**
-     * {@inheritdoc}
+     * @param boolean $isOptional
      */
-    public function init(Container $container)
+    public function setOptional($isOptional)
     {
-        $this->container = $container;
+        $this->isOptional = $isOptional;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isOptional()
+    {
+        return $this->isOptional;
+    }
+
+    public function __construct($tag = null, $isOptional = null)
+    {
+        $this->setTag($tag);
+        $this->setOptional($isOptional);
     }
 
     /**

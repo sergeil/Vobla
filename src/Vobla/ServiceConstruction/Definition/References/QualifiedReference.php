@@ -22,41 +22,64 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
-
-use Vobla\Container,
-    Vobla\ServiceConstruction\Definition\ServiceDefinition;
+namespace Vobla\ServiceConstruction\Definition\References;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-abstract class AbstractServiceLocator implements ServiceLocator
+class QualifiedReference implements OptionalReference
 {
     /**
-     * @var \Vobla\Container
+     * @var string
      */
-    protected $container;
+    private $qualifier;
 
     /**
-     * @return \Vobla\Container
+     * @var boolean
      */
-    public function getContainer()
-    {
-        return $this->container;
-    }
+    private $isOptional;
 
     /**
-     * {@inheritdoc}
+     * @param string $qualifier
      */
-    public function init(Container $container)
+    public function setQualifier($qualifier)
     {
-        $this->container = $container;
+        $this->qualifier = $qualifier;
     }
 
     /**
      * @return string
      */
+    public function getQualifier()
+    {
+        return $this->qualifier;
+    }
+
+    /**
+     * @param boolean $isOptional
+     */
+    public function setOptional($isOptional)
+    {
+        $this->isOptional = $isOptional;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isOptional()
+    {
+        return $this->isOptional;
+    }
+
+    /**
+     * @param string $qualifier
+     */
+    public function __construct($qualifier, $isOptional = null)
+    {
+        $this->setQualifier($qualifier);
+        $this->setOptional($isOptional);
+    }
+    
     static public function clazz()
     {
         return get_called_class();

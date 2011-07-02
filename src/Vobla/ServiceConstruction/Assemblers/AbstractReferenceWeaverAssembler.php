@@ -26,11 +26,16 @@ namespace Vobla\ServiceConstruction\Assemblers;
 
 use Vobla\Exception,
     Vobla\Container,
-    Vobla\ServiceConstruction\Definition\ServiceReference,
-    Vobla\ServiceConstruction\Definition\QualifiedReference;
+    Vobla\ServiceConstruction\Definition\References\IdReference,
+    Vobla\ServiceConstruction\Definition\References\QualifiedReference,
+    Vobla\ServiceConstruction\Definition\References\TagReference,
+    Vobla\ServiceConstruction\Definition\References\TypeReference,
+    Vobla\ServiceLocating\DefaultImpls\TagServiceLocator,
+    Vobla\ServiceLocating\DefaultImpls\TypeServiceLocator,
+    Vobla\ServiceConstruction\Definition\References\OptionalReference,
+    Vobla\ServiceNotFoundException;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 abstract class AbstractReferenceWeaverAssembler implements Assembler
@@ -52,13 +57,57 @@ abstract class AbstractReferenceWeaverAssembler implements Assembler
 
     protected function derefenceParameter($param)
     {
-        /* @var \Vobla\Container $c */
-        $c = $this->getContainer();
-
-        if ($param instanceof ServiceReference) {
-            return $c->getServiceById($param->getServiceId());
-        } else if ($param instanceof QualifiedReference) {
-            return $c->getServiceByQualifier($param->getQualifier());
+        try {
+            $shortClassName = explode('\\', get_class($param));
+            $shortClassName = end($shortClassName);
+            
+            $methodName = 'dereference'.ucfirst($shortClassName).'Parameter';
+            if (in_array($methodName, get_class_methods($this))) {
+                return $this->{$methodName}($param);
+            }
+        } catch (ServiceNotFoundException $e) {
+            if ($param instanceof OptionalReference && !$param->isOptional()) {
+                throw $e;
+            } else {
+                throw $e;
+            }
         }
+    }
+
+    protected function dereferenceIdReferenceParameter(IdReference $param)
+    {
+        return $this->getContainer()->getServiceById($param->getServiceId());
+    }
+
+    protected function dereferenceQualifiedReferenceParameter(QualifiedReference $param)
+    {
+        return $this->getContainer()->getServiceByQualifier($param->getQualifier());
+    }
+
+    protected function dereferenceTagReferenceParameter(TagReference $param)
+    {
+        $ids = $this->getContainer()->getServiceLocator()->locate(TagServiceLocator::createCriteria($param->getTag()));
+
+        if (!$ids && !is_array($ids)) {
+            throw new Exception(
+                sprintf('Unable to find any services with tag "%s".', $param->getTag())
+            );
+        }
+
+        if (sizeof($ids) > 1) {
+            throw new Exception(
+                sprintf(
+                    "It was expected that there's only one service with tag '%s' but instead there are %s of them.",
+                    $param->getTag(), sizeof($ids)
+                )
+            );
+        }
+        
+        return $this->getContainer()->getServiceById($ids[0]);
+    }
+
+    protected function dereferenceTypeReferenceParameter(TypeReference $param)
+    {
+        $this->getContainer()->getServiceLocator()->locate(TypeServiceLocator::createCriteria($param->getType()));
     }
 }

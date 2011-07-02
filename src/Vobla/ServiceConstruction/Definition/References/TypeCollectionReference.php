@@ -22,43 +22,58 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceConstruction\Definition;
+namespace Vobla\ServiceConstruction\Definition\References;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class QualifiedReference 
+class TypeCollectionReference
 {
+    /**
+     * @var array
+     */
+    private $type = array();
+
     /**
      * @var string
      */
-    protected $qualifier;
+    private $stereotype;
+    
+    /**
+     * @param array $types
+     */
+    public function setType($types)
+    {
+        $this->type = $types;
+    }
 
     /**
-     * @param string $qualifier
+     * @return array
      */
-    public function setQualifier($qualifier)
+    public function getType()
     {
-        $this->qualifier = $qualifier;
+        return $this->type;
+    }
+
+    public function setStereotype($stereotype)
+    {
+        $this->stereotype = $stereotype;
+    }
+
+    public function getStereotype()
+    {
+        return $this->stereotype;
+    }
+
+    public function __construct($type, $stereotype)
+    {
+        $this->setType($type);
+        $this->setStereotype($stereotype);
     }
 
     /**
      * @return string
      */
-    public function getQualifier()
-    {
-        return $this->qualifier;
-    }
-
-    /**
-     * @param string $qualifier
-     */
-    public function __construct($qualifier)
-    {
-        $this->setQualifier($qualifier);
-    }
-
     static public function clazz()
     {
         return get_called_class();

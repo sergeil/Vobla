@@ -31,8 +31,8 @@ use Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\ConstructorProcessor,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor,
-    Vobla\ServiceConstruction\Definition\QualifiedReference,
-    Vobla\ServiceConstruction\Definition\ServiceReference,
+    Vobla\ServiceConstruction\Definition\References\QualifiedReference,
+    Vobla\ServiceConstruction\Definition\References\IdReference,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter;
 
 /**
@@ -104,7 +104,7 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
             )
         );
 
-        /* @var \Vobla\ServiceConstruction\Definition\QualifiedReference $param1 */
+        /* @var \Vobla\ServiceConstruction\Definition\References\QualifiedReference $param1 */
         $param1 = $args[0];
         $this->assertType(
             QualifiedReference::clazz(), $param1,
@@ -115,14 +115,14 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
         );
         $this->assertEquals('fooQfr', $param1->getQualifier());
 
-        /* @var \Vobla\ServiceConstruction\Definition\ServiceReference $param2 */
+        /* @var \IdReference\ServiceConstruction\Definition\ServiceReference $param2 */
         $param2 = $args[1];
         $this->assertType(
-            ServiceReference::clazz(),
+            IdReference::clazz(),
             $param2,
             sprintf(
                 "If no %s defined for a method's parameter then an instance of %s must be created for a service with the same name as the parameter has",
-                Parameter::clazz(), ServiceReference::clazz()
+                Parameter::clazz(), IdReference::clazz()
             )
         );
         $this->assertEquals(
@@ -130,17 +130,17 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
             $param2->getServiceId(),
             sprintf(
                 "ID of automatically created %s for constructor's parameter must be the same as the parameter name",
-                ServiceReference::clazz()
+                IdReference::clazz()
             )
         );
 
         $param3 = $args[2];
         $this->assertType(
-            ServiceReference::clazz(),
+            IdReference::clazz(),
             $param3,
             sprintf(
                 "Whenever there's ID is specified for %s an instance of %s must be created.",
-                Parameter::clazz(), ServiceReference::clazz()
+                Parameter::clazz(), IdReference::clazz()
             )
         );
     }

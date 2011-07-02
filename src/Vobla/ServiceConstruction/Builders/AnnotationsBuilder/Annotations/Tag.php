@@ -22,38 +22,15 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
+namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 
-use Vobla\Container,
-    Vobla\ServiceConstruction\Definition\ServiceDefinition;
+use Doctrine\Common\Annotations\Annotation;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-abstract class AbstractServiceLocator implements ServiceLocator
+class Tag extends Annotation
 {
-    /**
-     * @var \Vobla\Container
-     */
-    protected $container;
-
-    /**
-     * @return \Vobla\Container
-     */
-    public function getContainer()
-    {
-        return $this->container;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function init(Container $container)
-    {
-        $this->container = $container;
-    }
-
     /**
      * @return string
      */

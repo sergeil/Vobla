@@ -33,7 +33,6 @@ use Vobla\ServiceConstruction\ServiceBuilder,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class Container 
@@ -176,8 +175,15 @@ class Container
             if (!$definition) {
                 throw new ServiceNotFoundException("Unable to find a service '$id'.");
             }
-            
-            $obj = $this->getServiceBuilder()->process($definition);
+
+            $obj = null;
+            try {
+                $obj = $this->getServiceBuilder()->process($definition);
+            } catch (\Exception $e) {
+                throw new Exception(
+                    sprintf('Unable to construct a service with ID "%s"', $id)
+                );
+            }
 
             $cx->register($id, $obj);
         }
