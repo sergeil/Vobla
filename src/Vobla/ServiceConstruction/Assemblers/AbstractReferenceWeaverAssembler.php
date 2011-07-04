@@ -33,7 +33,9 @@ use Vobla\Exception,
     Vobla\ServiceLocating\DefaultImpls\TagServiceLocator,
     Vobla\ServiceLocating\DefaultImpls\TypeServiceLocator,
     Vobla\ServiceConstruction\Definition\References\OptionalReference,
-    Vobla\ServiceNotFoundException;
+    Vobla\ServiceNotFoundException,
+    Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
+    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -87,8 +89,8 @@ abstract class AbstractReferenceWeaverAssembler implements Assembler
     protected function dereferenceTagReferenceParameter(TagReference $param)
     {
         $ids = $this->getContainer()->getServiceLocator()->locate(TagServiceLocator::createCriteria($param->getTag()));
-
-        if (!$ids && !is_array($ids)) {
+        
+        if (!$ids) {
             throw new Exception(
                 sprintf('Unable to find any services with tag "%s".', $param->getTag())
             );
@@ -109,5 +111,64 @@ abstract class AbstractReferenceWeaverAssembler implements Assembler
     protected function dereferenceTypeReferenceParameter(TypeReference $param)
     {
         $this->getContainer()->getServiceLocator()->locate(TypeServiceLocator::createCriteria($param->getType()));
+
+        // TODO
+    }
+
+    protected function dereferenceTagsCollectionReferenceParameter(TagsCollectionReference $param)
+    {
+        $serviceLocator = $this->getContainer()->getServiceLocator();
+
+        return $this->dereferenceCollection(
+            $param->getTags(),
+            $param->getStereotype(),
+            $param->isOptional(),
+            function($tagName) use($serviceLocator){ return TagServiceLocator::createCriteria($tagName); }
+        );
+    }
+
+    protected function dereferenceCollection(array $lookupTokens, $stereotype, $isOptional, \Closure $criteriaBuilder)
+    {
+        $ids = array();
+        foreach ($lookupTokens as $token) {
+            $criteria = $criteriaBuilder($token);
+            $ids = array_merge(
+                $ids,
+                $this->getContainer()->getServiceLocator()->locate($criteria)
+            );
+        }
+
+        $stereotype = $this->getCollectionStereotype($stereotype);
+        $services = array();
+        foreach ($ids as $id) {
+            $service = null;
+            try {
+                $service = $this->getContainer()->getServiceById($id);
+            } catch (ServiceNotFoundException $e) {
+                if (!$isOptional) {
+                    throw $e;
+                }
+            }
+
+            if ($stereotype == 'set') {
+                $services[] = $service;
+            } else if ($stereotype == 'map') {
+                $services[$id] = $service;
+            } else {
+                // TODO
+            }
+        }
+
+        return $services;
+    }
+
+    protected function dereferenceTypeCollectionReference(TypeCollectionReference $param)
+    {
+        // TODO
+    }
+
+    protected function getCollectionStereotype($providedStereotype)
+    {
+        return in_array($providedStereotype, array('set', 'map')) ? $providedStereotype : 'set';
     }
 }

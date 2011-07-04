@@ -27,7 +27,7 @@ namespace Vobla\ServiceConstruction\Definition\References;
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class TagsCollectionReference 
+class TagsCollectionReference implements OptionalReference
 {
     /**
      * @var array
@@ -38,6 +38,11 @@ class TagsCollectionReference
      * @var string
      */
     private $stereotype;
+
+    /**
+     * @var boolean
+     */
+    private $isOptional;
     
     /**
      * @param array $tags
@@ -65,9 +70,27 @@ class TagsCollectionReference
         return $this->stereotype;
     }
 
-    public function __construct(array $tags)
+    /**
+     * @param boolean $isOptional
+     */
+    public function setOptional($isOptional)
+    {
+        $this->isOptional = $isOptional;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isOptional()
+    {
+        return $this->isOptional;
+    }
+
+    public function __construct(array $tags, $stereotype, $isOptional = null)
     {
         $this->tags = $tags;
+        $this->setStereotype($stereotype);
+        $this->setOptional($isOptional);
     }
 
     /**

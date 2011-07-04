@@ -38,6 +38,11 @@ class TypeCollectionReference
      * @var string
      */
     private $stereotype;
+
+    /**
+     * @var boolean
+     */
+    private $isOptional;
     
     /**
      * @param array $types
@@ -65,10 +70,27 @@ class TypeCollectionReference
         return $this->stereotype;
     }
 
-    public function __construct($type, $stereotype)
+    /**
+     * @param boolean $isOptional
+     */
+    public function setOptional($isOptional)
+    {
+        $this->isOptional = $isOptional;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isOptional()
+    {
+        return $this->isOptional;
+    }
+
+    public function __construct($type, $stereotype, $isOptional = null)
     {
         $this->setType($type);
         $this->setStereotype($stereotype);
+        $this->setOptional($isOptional);
     }
 
     /**
