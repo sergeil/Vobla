@@ -53,7 +53,7 @@ class ReflectionFile
     {
         $value = null;
         for ($i=0; $i<sizeof($tokens); $i++) {
-            if ($tokens[$i][0] == \T_CLASS) {
+            if ($tokens[$i][0] == \T_CLASS || $tokens[$i][0] == \T_INTERFACE) {
                 for ($i2=$i; $i2<sizeof($tokens) && $value === null; $i2++) {
                     if ((isset($tokens[$i2+1]) && $tokens[$i2+1][0] == \T_WHITESPACE) && isset($tokens[$i2+2])) {
                         $value = $tokens[$i2+2][1];

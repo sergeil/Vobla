@@ -32,7 +32,7 @@ require_once __DIR__.'/../../../../../bootstrap.php';
  */ 
 class ReflectionFileTest extends \PHPUnit_Framework_TestCase
 {
-    public function testGetClassNameAndGetNamespace()
+    public function testGetClassNameAndGetNamespace_class()
     {
         $pathname = realpath(__DIR__.'/fixtures/GoodClass.php');
         $rf = new ReflectionFile(file_get_contents($pathname));
@@ -41,6 +41,23 @@ class ReflectionFileTest extends \PHPUnit_Framework_TestCase
             'GoodClass',
             $rf->getClassName(),
             "Unable to extract class-name from '$pathname' file."
+        );
+        $this->assertEquals(
+            'Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder',
+            $rf->getNamespace(),
+            "Unable to extract namespace from '$pathname' file"
+        );
+    }
+
+    public function testGetClassNameAndGetNamespace_interface()
+    {
+        $pathname = realpath(__DIR__.'/fixtures/GoodInterface.php');
+        $rf = new ReflectionFile(file_get_contents($pathname));
+
+        $this->assertEquals(
+            'GoodInterface',
+            $rf->getClassName(),
+            "Unable to extract class-name(interface-name) from '$pathname' file."
         );
         $this->assertEquals(
             'Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder',

@@ -22,12 +22,12 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
+namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class GoodClass
+interface GoodInterface
 {
     
 }
