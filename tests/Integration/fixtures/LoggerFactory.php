@@ -1,7 +1,9 @@
 <?php
- 
+
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations as Vobla;
+
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(qualifier="loggingFacility")
+ * @Vobla\Service(qualifier="loggingFacility")
  */ 
 class LoggerFactory
 {

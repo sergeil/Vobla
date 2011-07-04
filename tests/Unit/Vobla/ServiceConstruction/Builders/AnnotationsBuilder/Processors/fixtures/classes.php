@@ -24,6 +24,8 @@
 
 namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations as Vobla;
+
 /**
  * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service()
  */
@@ -32,8 +34,8 @@ class ClassWithLocalFactoryMethod
     /**
      * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor(
      *     params={
-     *         @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter(name="aService", qualifier="fooQfr"),
-     *         @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter(name="cService", id="megaCService")
+     *         @Vobla\Parameter(name="aService", qualifier="fooQfr"),
+     *         @Vobla\Parameter(name="cService", id="megaCService")
      *     }
      * )
      */

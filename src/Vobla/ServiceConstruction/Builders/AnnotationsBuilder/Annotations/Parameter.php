@@ -29,6 +29,7 @@ use Doctrine\Common\Annotations\Annotation;
 /**
  * Used inside of {@class Constructor}::params' field.
  *
+ * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class Parameter extends Annotation

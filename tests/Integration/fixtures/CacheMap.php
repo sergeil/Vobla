@@ -1,7 +1,9 @@
 <?php
- 
+
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations as Vobla;
+
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(
+ * @Vobla\Service(
  *     id="cacheMap",
  *     scope="prototype"
  * )
@@ -9,7 +11,7 @@
 class CacheMap 
 {
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredMap(
+     * @Vobla\AutowiredMap(
      *     tags={"cacheDriver"}
      * )
      */

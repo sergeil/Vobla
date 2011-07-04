@@ -29,6 +29,7 @@ use Doctrine\Common\Annotations\Annotation;
 /**
  * Declares a reference to another service.
  *
+ * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class Autowired extends Annotation

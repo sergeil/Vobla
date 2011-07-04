@@ -1,8 +1,10 @@
 <?php
- 
+
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations as Vobla;
+
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(id="memcacheCacheDriver")
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("cacheDriver")
+ * @Vobla\Service(id="memcacheCacheDriver")
+ * @Vobla\Tag("cacheDriver")
  */
 class MemcacheDriver implements CacheDriver
 {

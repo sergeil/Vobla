@@ -27,6 +27,7 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
+ * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class Tag extends Annotation

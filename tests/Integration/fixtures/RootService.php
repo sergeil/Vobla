@@ -1,7 +1,9 @@
 <?php
- 
+
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations as Vobla;
+
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(
+ * @Vobla\Service(
  *     id="rootService",
  *     scope="prototype"
  * )
@@ -11,14 +13,14 @@ class RootService
     public $loggerFactory;
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(id="cacheMap")
+     * @Vobla\Autowired(id="cacheMap")
      */
     public $cacheMap;
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor(
+     * @Vobla\Constructor(
      *     params={
-     *         @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter(name="loggerFactory", qualifier="loggingFacility")
+     *         @Vobla\Parameter(name="loggerFactory", qualifier="loggingFacility")
      *     }
      * )
      */

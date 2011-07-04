@@ -31,7 +31,13 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
     Vobla\Container,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ScanPathsProvider,
     Vobla\Exception,
-    Vobla\ServiceConstruction\Builders\AbstractBuilder;
+    Vobla\ServiceConstruction\Builders\AbstractBuilder,
+    Doctrine\Common\Annotations\AnnotationRegistry;
+
+if (!defined('VOBLA_ANNOTATIONS_LOADED')) {
+    \Vobla\Tools\Toolkit::loadDirectory(__DIR__.'/Annotations');
+    define('VOBLA_ANNOTATIONS_LOADED', true);
+}
 
 /**
  *
@@ -190,6 +196,8 @@ class AnnotationsBuilder extends AbstractBuilder
                     }
                 }
             } catch (\Exception $e) {
+                echo "> ".$e->getMessage()."\n";
+
                 $skippedFiles[] = array(
                     $file->getFilename(),
                     $e

@@ -1,8 +1,10 @@
 <?php
- 
+
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations as Vobla;
+
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(id="arrayCacheDriver")
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("cacheDriver")
+ * @Vobla\Service(id="arrayCacheDriver")
+ * @Vobla\Tag("cacheDriver")
  */ 
 class ArrayDriver implements CacheDriver
 {

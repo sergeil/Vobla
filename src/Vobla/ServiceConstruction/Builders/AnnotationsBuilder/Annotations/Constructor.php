@@ -29,6 +29,7 @@ use Doctrine\Common\Annotations\Annotation;
 /**
  * This annotation is used to designate a factory-method of a service.
  *
+ * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class Constructor extends Annotation

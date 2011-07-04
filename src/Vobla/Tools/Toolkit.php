@@ -36,4 +36,17 @@ class Toolkit
             self::printException($e->getPrevious());
         }
     }
+
+    /* not-tested */
+    static public function loadDirectory($path, array $eligibleTypes = array('php'))
+    {
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path)) as $file) {
+            $explodedFilename = explode('.', $file->getFilename());
+
+            /* @var \SplFileInfo $file */
+            if (in_array(end($explodedFilename), $eligibleTypes)) {
+                require_once $file->getPathname();
+            }
+        }
+    }
 }

@@ -29,6 +29,7 @@ use Doctrine\Common\Annotations\Annotation;
 /**
  * If class has this annotation the container will treat it as a service.
  *
+ * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class Service extends Annotation
