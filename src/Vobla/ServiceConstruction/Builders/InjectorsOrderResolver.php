@@ -77,7 +77,7 @@ class InjectorsOrderResolver
     public function getPriorityPolicy() // make extensible
     {
         return array(
-            'qualifier', 'tags', 'type', 'id'
+            'qualifier', 'tag', 'type', 'id'
         );
     }
 
@@ -89,7 +89,7 @@ class InjectorsOrderResolver
     {
         foreach ($this->getPriorityPolicy() as $type) {
             /* @var \Closure $clb */
-            $methodName = 'get'.ucfirst($type).'Callback';
+            $methodName = 'getBy'.ucfirst($type).'Callback';
             $clb = $this->{$methodName}();
 
             if (!($clb instanceof \Closure)) {

@@ -25,7 +25,9 @@
 namespace Vobla\ServiceLocating;
 
 use Vobla\Container,
-    Vobla\ServiceLocating\DefaultImpls\QualifierServiceLocator;
+    Vobla\ServiceLocating\DefaultImpls\QualifierServiceLocator,
+    Vobla\ServiceLocating\DefaultImpls\TagServiceLocator,
+    Vobla\ServiceLocating\DefaultImpls\TypeServiceLocator;
 
 /**
  *
@@ -54,7 +56,9 @@ class DefaultServiceLocatorsProvider implements ServiceLocatorsProvider
     public function __construct()
     {
         $this->locators = array(
-            new QualifierServiceLocator()
+            new QualifierServiceLocator(),
+            new TypeServiceLocator(),
+            new TagServiceLocator()
         );
     }
 

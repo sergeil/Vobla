@@ -1,8 +1,8 @@
 <?php
  
 /**
- * @Service
- * @author Sergei Lissovski <sergei.lissovski@gmail.com>
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(id="memcacheCacheDriver")
+ * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("cacheDriver")
  */
 class MemcacheDriver implements CacheDriver
 {

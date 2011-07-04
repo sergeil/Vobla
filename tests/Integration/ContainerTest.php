@@ -26,13 +26,13 @@ namespace Vobla;
 
 require_once __DIR__.'/../bootstrap.php';
 
-//require_once __DIR__ . '/fixtures/Foo.php';
-//require_once __DIR__ . '/fixtures/Bar.php';
-//require_once __DIR__ . '/fixtures/FooBar.php';
-
 require_once __DIR__.'/fixtures/RootService.php';
 require_once __DIR__.'/fixtures/LoggerFactory.php';
 require_once __DIR__.'/fixtures/CacheMap.php';
+require_once __DIR__ . '/fixtures/CacheDrivers/CacheDriver.php';
+require_once __DIR__ . '/fixtures/CacheDrivers/ApcDriver.php';
+require_once __DIR__ . '/fixtures/CacheDrivers/MemcacheDriver.php';
+require_once __DIR__ . '/fixtures/CacheDrivers/ArrayDriver.php';
 
 
 use Vobla\Container,
@@ -67,6 +67,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->tc($container);
+
     }
 
     public function testItWithXmls()
@@ -84,7 +85,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         
         $xb->processXml(file_get_contents(__DIR__.'/fixtures/context/a.xml'), $container);
 
-        $this->tc($container);
+//        $this->tc($container);
     }
 
     protected function tc(Container $container)
@@ -100,5 +101,18 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertType('LoggerFactory', $rootService1->loggerFactory);
         $this->assertType('CacheMap', $rootService1->cacheMap);
+
+
+        /* @var \CacheMap $cacheMap */
+        $cacheMap = $rootService1->cacheMap;
+        $this->assertTrue(is_array($cacheMap->cacheDrivers));
+        $this->assertEquals(3, sizeof($cacheMap->cacheDrivers));
+        $this->assertEquals(
+            array('apcCacheDriver', 'arrayCacheDriver', 'memcacheCacheDriver'),
+            array_keys($cacheMap->cacheDrivers)
+        );
+        $this->assertType('ApcDriver', $cacheMap->cacheDrivers['apcCacheDriver']);
+        $this->assertType('ArrayDriver', $cacheMap->cacheDrivers['arrayCacheDriver']);
+        $this->assertType('MemcacheDriver', $cacheMap->cacheDrivers['memcacheCacheDriver']);
     }
 }

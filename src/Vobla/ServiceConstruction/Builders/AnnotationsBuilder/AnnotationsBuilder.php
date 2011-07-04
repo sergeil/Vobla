@@ -174,7 +174,11 @@ class AnnotationsBuilder extends AbstractBuilder
 
                 $reflClasses = array();
                 foreach ($classNames as $className) {
-                    $reflClasses[] = new \ReflectionClass($className);
+                    $reflClass = new \ReflectionClass($className);
+                    if ($reflClass->isInterface()) { // TODO not under test
+                        continue;
+                    }
+                    $reflClasses[] = $reflClass;
                 }
 
                 foreach ($reflClasses as $reflClass) { // let it be that a file may contain several class declarations

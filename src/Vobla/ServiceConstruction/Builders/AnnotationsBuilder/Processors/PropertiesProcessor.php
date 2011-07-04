@@ -61,6 +61,10 @@ class PropertiesProcessor extends AbstractProcessor
      */
     public function getInjectorsOrderResolver()
     {
+        if (null === $this->injectorsOrderResolver) {
+            $this->injectorsOrderResolver = new InjectorsOrderResolver();
+        }
+
         return $this->injectorsOrderResolver;
     }
 

@@ -38,7 +38,7 @@ class TypeServiceLocator extends AbstractServiceLocator
      */
     public function analyze($id, ServiceDefinition $serviceDefinition)
     {
-        // TODO: Implement analyze() method.
+        return array();
     }
 
     /**
@@ -46,7 +46,7 @@ class TypeServiceLocator extends AbstractServiceLocator
      */
     public function locate($criteria)
     {
-        // TODO: Implement locate() method.
+        return array();
     }
 
 }
