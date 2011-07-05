@@ -3,7 +3,7 @@
 cd ../
 git submodule update --init
 
-cd src/vendor/Doctrine
+cd lib/vendor/Doctrine
 git checkout 3.0.x
 git pull
 
