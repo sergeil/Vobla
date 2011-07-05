@@ -67,7 +67,7 @@ class QualifierServiceLocatorTest extends \PHPUnit_Framework_TestCase
         $id = 'fooId';
         $qlr = 'fooQlr';
 
-        $this->assertFalse($this->locator->locate(QSL::createCriteria($qlr)));
+        $this->assertEquals(0, sizeof($this->locator->locate(QSL::createCriteria($qlr))));
 
         $def = $this->mf->createTestCaseAware(ServiceDefinition::clazz())
         ->addMethod('getQualifier', $qlr, 1)

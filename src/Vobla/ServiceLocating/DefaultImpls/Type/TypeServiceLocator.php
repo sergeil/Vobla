@@ -22,60 +22,30 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceLocating;
+namespace Vobla\ServiceLocating\DefaultImpls\Type;
 
-use Vobla\Container,
-    Vobla\ServiceLocating\DefaultImpls\QualifierServiceLocator,
-    Vobla\ServiceLocating\DefaultImpls\TagServiceLocator,
-    Vobla\ServiceLocating\DefaultImpls\Type\TypeServiceLocator;
+use Vobla\ServiceLocating\AbstractServiceLocator,
+    Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
- */ 
-class DefaultServiceLocatorsProvider implements ServiceLocatorsProvider
+ */
+class TypeServiceLocator extends AbstractServiceLocator
 {
     /**
-     * @var \Vobla\Container
+     * {@inheritdoc}
      */
-    protected $container;
-
-    /**
-     * @var array
-     */
-    protected $locators;
-
-    /**
-     * @return \Vobla\Container
-     */
-    public function getContainer()
+    public function analyze($id, ServiceDefinition $serviceDefinition)
     {
-        return $this->container;
-    }
-
-    public function __construct()
-    {
-        $this->locators = array(
-            new QualifierServiceLocator(),
-            new TypeServiceLocator(),
-            new TagServiceLocator()
-        );
-    }
-
-    public function init(Container $container)
-    {
-        $this->container = $container;
-
-        foreach ($this->locators as $locator) {
-            $locator->init($container); // TODO ughm, what is a good place to initialize ?
-        }
+        return array();
     }
 
     /**
-     * @return void
+     * {@inheritdoc}
      */
-    public function getServiceLocators()
+    public function locate($criteria)
     {
-        return $this->locators;
+        return array();
     }
+
 }
