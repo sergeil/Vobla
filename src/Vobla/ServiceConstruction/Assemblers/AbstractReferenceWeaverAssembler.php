@@ -64,8 +64,11 @@ abstract class AbstractReferenceWeaverAssembler implements Assembler
             $shortClassName = end($shortClassName);
             
             $methodName = 'dereference'.ucfirst($shortClassName).'Parameter';
+            
             if (in_array($methodName, get_class_methods($this))) {
                 return $this->{$methodName}($param);
+            } else {
+                throw new \RuntimeException();
             }
         } catch (ServiceNotFoundException $e) {
             if ($param instanceof OptionalReference && !$param->isOptional()) {
@@ -110,9 +113,18 @@ abstract class AbstractReferenceWeaverAssembler implements Assembler
 
     protected function dereferenceTypeReferenceParameter(TypeReference $param)
     {
-        $this->getContainer()->getServiceLocator()->locate(TypeServiceLocator::createCriteria($param->getType()));
+        $c = $this->getContainer();
 
-        // TODO
+        $ids = $c->getServiceLocator()->locate(TypeServiceLocator::createCriteria($param->getType()));
+
+        if (sizeof($ids) > 1) {
+            $msg = 'It was expected that dereferencing by type "%s" would provide one matching ID';
+            $msg .= ' but instead there was many - "%s". Eliminate ambiguity or use Set/Map counterparts.';
+            $msg = sprintf($msg, $param->getType(), implode($ids));
+            throw new Exception($msg);
+        }
+
+        return $c->getServiceById($ids[0]);
     }
 
     protected function dereferenceTagsCollectionReferenceParameter(TagsCollectionReference $param)
@@ -162,9 +174,16 @@ abstract class AbstractReferenceWeaverAssembler implements Assembler
         return $services;
     }
 
-    protected function dereferenceTypeCollectionReference(TypeCollectionReference $param)
+    protected function dereferenceTypeCollectionReferenceParameter(TypeCollectionReference $param)
     {
-        // TODO
+        $serviceLocator = $this->getContainer()->getServiceLocator();
+
+        return $this->dereferenceCollection(
+            array($param->getType()),
+            $param->getStereotype(),
+            $param->isOptional(),
+            function($typeName) use($serviceLocator){ return TypeServiceLocator::createCriteria($typeName); }
+        );
     }
 
     protected function getCollectionStereotype($providedStereotype)

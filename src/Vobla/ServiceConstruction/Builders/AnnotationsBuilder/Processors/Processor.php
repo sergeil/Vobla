@@ -28,7 +28,6 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Doctrine\Common\Annotations\AnnotationReader;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 interface Processor

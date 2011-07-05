@@ -28,24 +28,60 @@ use Vobla\ServiceLocating\AbstractServiceLocator,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */
 class TypeServiceLocator extends AbstractServiceLocator
 {
+    static public function createCriteria($type)
+    {
+        return "byType:$type";
+    }
+
+    /**
+     * @var array
+     */
+    protected $lookup = array();
+
     /**
      * {@inheritdoc}
      */
     public function analyze($id, ServiceDefinition $serviceDefinition)
     {
-        return array();
+        $reflClass = new \ReflectionClass($serviceDefinition->getClassName());
+
+        $types = $this->collectTypes($reflClass);
+
+        foreach ($types as $type) {
+            if (!isset($this->lookup[$type])) {
+                $this->lookup[$type] = array();
+            }
+            $this->lookup[$type][] = $id;
+        }
     }
 
-    /**
+    protected function collectTypes(\ReflectionClass $reflClass)
+    {
+        $result = $reflClass->getInterfaceNames();
+        $result[] = $reflClass->getName();
+
+        if ($reflClass->getParentClass()) {
+            $result = array_merge($result, $this->collectTypes($reflClass->getParentClass()));
+        }
+
+        return $result;
+    }
+
+   /**
      * {@inheritdoc}
      */
     public function locate($criteria)
     {
+        $matches = array();
+        if (preg_match('/^byType:(.*)$/', $criteria, $matches)) {
+            $type = $matches[1];
+            return isset($this->lookup[$type]) ? $this->lookup[$type] : array();
+        }
+
         return array();
     }
 

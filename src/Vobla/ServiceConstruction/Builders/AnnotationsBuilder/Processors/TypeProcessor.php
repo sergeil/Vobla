@@ -22,13 +22,25 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Testing;
+namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
+
+use Vobla\ServiceConstruction\Definition\ServiceDefinition,
+    Doctrine\Common\Annotations\AnnotationReader,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\NotByTypeWiringCandidate;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class Hibernate extends Orm
+class TypeProcessor implements Processor
 {
-    
+    /**
+     * {@inheritdoc}
+     */
+    public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)
+    {
+        $notByTypeWiringCandidate = $annotationReader->getClassAnnotation($reflClass, NotByTypeWiringCandidate::clazz());
+        if ($notByTypeWiringCandidate) {
+            $serviceDefinition->setMetaEntry('notByTypeWiringCandidate', true);
+        }
+    }
 }

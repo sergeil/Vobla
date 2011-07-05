@@ -16,4 +16,8 @@
     <service id="memcacheCacheDriver" class-name="MemcacheDriver" tags="cacheDriver" />
 
     <service qualifier="loggingFacility" class-name="LoggerFactory" />
+
+    <service id="dashboardController" class-name="DashboardController"  />
+    <service id="settingsController" class-name="SettingsController" />
+    <service class-name="TestController" not-by-type-wiring-candidate="true" />
 </context>

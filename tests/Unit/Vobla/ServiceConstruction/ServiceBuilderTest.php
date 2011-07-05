@@ -32,7 +32,6 @@ use Vobla\Container,
     \Vobla\ServiceConstruction\Assemblers\Assembler;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class ServiceBuilderTest extends \PHPUnit_Framework_TestCase

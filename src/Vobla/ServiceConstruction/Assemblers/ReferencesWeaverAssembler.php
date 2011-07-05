@@ -64,19 +64,20 @@ class ReferencesWeaverAssembler extends AbstractReferenceWeaverAssembler
      */
     public function execute(AssemblersManager $assemblersManager, ServiceDefinition $definition, $obj = null)
     {
-        try {
-            foreach ($definition->getArguments() as $paramName => $paramValue) {
-                $value = $this->derefenceParameter($paramValue);
-                $this->getReferenceInjector()->inject($obj, $paramName, $value, $definition);
+        foreach ($definition->getArguments() as $paramName => $paramValue) {
+            $dereferenceValue = null;
+            try {
+                $dereferenceValue = $this->derefenceParameter($paramValue);
+            } catch (\Exception $e) {
+                throw new Exception(
+                    sprintf('An error occurred while trying to deference s service property "%s".', $paramName),
+                    null,
+                    $e
+                );
             }
-
-            return $assemblersManager->proceed($definition, $obj);
-        } catch (\Exception $e) {
-            throw new Exception(
-                sprintf('An error occurred while trying to deference service properties.'),
-                null,
-                $e
-            );
+            $this->getReferenceInjector()->inject($obj, $paramName, $dereferenceValue, $definition);
         }
+
+        return $assemblersManager->proceed($definition, $obj);
     }
 }

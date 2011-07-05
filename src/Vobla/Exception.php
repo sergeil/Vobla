@@ -25,7 +25,6 @@
 namespace Vobla;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class Exception extends \Exception

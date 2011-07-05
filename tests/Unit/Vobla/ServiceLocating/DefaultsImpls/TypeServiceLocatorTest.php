@@ -24,15 +24,16 @@
 
 namespace Vobla\ServiceLocating\DefaultImpls;
 
+require_once __DIR__.'/fixtures/classes.php';
 require_once __DIR__.'/../../../../bootstrap.php';
 
-use Vobla\ServiceLocating\DefaultImpls\TagServiceLocator as TSL,
+use Vobla\ServiceLocating\DefaultImpls\TypeServiceLocator as TSL,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class TagServiceLocatorTest extends \PHPUnit_Framework_TestCase
+class TypeServiceLocatorTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \Moko\MockFactory
@@ -40,7 +41,7 @@ class TagServiceLocatorTest extends \PHPUnit_Framework_TestCase
     protected $mf;
 
     /**
-     * @var \Vobla\ServiceLocating\DefaultImpls\TagServiceLocator
+     * @var \Vobla\ServiceLocating\DefaultImpls\TypeServiceLocator
      */
     protected $locator;
 
@@ -58,30 +59,35 @@ class TagServiceLocatorTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateCriteria()
     {
-        $this->assertEquals('byTag:foo', TSL::createCriteria('foo'));
+        $this->assertEquals('byType:foo', TSL::createCriteria('foo'));
     }
 
     public function testAnalyzeAndLocate()
     {
-        $id = 'fooId';
-        $tag = 'fooQlr';
-
-        $this->assertEquals(0, sizeof($this->locator->locate(TSL::createCriteria($tag))));
-
         $def = $this->mf->createTestCaseAware(ServiceDefinition::clazz())
-        ->addMethod('getMetaEntry', function($self, $entryName) use($tag) {
-            if($entryName == 'tags') {
-                return array($tag);
-            }
+        ->addMethod('getClassName', function($self) {
+            return FirstClass::clazz();
         }, 1)
         ->createMock();
 
-        $this->locator->analyze($id, $def);
-        
+        $this->locator->analyze('fullyLoadedService', $def);
+
         $this->assertEquals(
-            array($id),
-            $this->locator->locate(TSL::createCriteria($tag)),
-            sprintf('For some reason "%s" was unable to register and locate a service.', TSL::clazz())
+            array('fullyLoadedService'),
+            $this->locator->locate(TSL::createCriteria(FirstClass::clazz()))
+        );
+
+        $def2 = $this->mf->createTestCaseAware(ServiceDefinition::clazz())
+        ->addMethod('getClassName', function($self) {
+            return SecondClass::clazz();
+        }, 1)
+        ->createMock();
+
+        $this->locator->analyze('fullyLoadedService2', $def2);
+
+        $this->assertEquals(
+            array('fullyLoadedService', 'fullyLoadedService2'),
+            $this->locator->locate(TSL::createCriteria(FirstClass::clazz()))
         );
     }
 }

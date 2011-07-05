@@ -32,7 +32,9 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Definition\References\QualifiedReference,
     Vobla\ServiceConstruction\Builders\InjectorsOrderResolver,
     Vobla\ServiceConstruction\Definition\References\TagReference,
-    Vobla\ServiceConstruction\Definition\References\TagsCollectionReference;
+    Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
+    Vobla\ServiceConstruction\Definition\References\TypeReference,
+    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -103,7 +105,7 @@ class ServiceProcessor implements Processor
 
         $defMethods = get_class_methods($def);
         foreach ($xmlAttrs as $name=>$attribute) {
-            if ($name == 'tags') {
+            if ('tags' == $name) {
                 $rawTags = explode(',', $attribute);
                 $tags = array();
                 foreach ($rawTags as $rawTag) {
@@ -111,6 +113,12 @@ class ServiceProcessor implements Processor
                 }
 
                 $def->setMetaEntry('tags', $tags);
+                continue;
+            } else if ('not-by-type-wiring-candidate' == $name) {
+                $def->setMetaEntry(
+                    'notByTypeWiringCandidate',
+                    (string)$attribute == 'true'
+                );
                 continue;
             }
 
@@ -190,10 +198,32 @@ class ServiceProcessor implements Processor
                 );
             }
         });
+        $ior->setByTypeCallback(function() use($refAttrsXml) {
+            $isOptional = true;
+            if (isset($refAttrsXml['is-optional']) && (string)$refAttrsXml['is-optional'] == 'false') {
+                $isOptional = false;
+            }
+
+            if (isset($refAttrsXml['type'])) {
+                return new TypeReference((string)$refAttrsXml['type'], $isOptional);
+            } else if (isset($refAttrsXml['type-set'])) {
+                return new TypeCollectionReference(
+                    (string)$refAttrsXml['type-set'],
+                    'set',
+                    $isOptional
+                );
+            } else if (isset($refAttrsXml['type-map'])) {
+                return new TypeCollectionReference(
+                    (string)$refAttrsXml['type-map'],
+                    'map',
+                    $isOptional
+                );
+            }
+        });
 
         $result = $ior->resolve();
         if (!$result) {
-            $params = array('id', 'qualifier', 'tags-set', 'tags-map', 'tags');
+            $params = array('id', 'qualifier', 'tags-set', 'tags-map', 'tags', 'type', 'type-set', 'type-map');
             throw new Exception('One of these attributes is required to be provided: '.implode(', ', $params).'.');
         }
 

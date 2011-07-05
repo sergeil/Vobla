@@ -35,7 +35,9 @@ use Vobla\ServiceConstruction\Assemblers\ReferencesWeaverAssembler,
     Vobla\ServiceLocating\ServiceLocator,
     Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
     Vobla\ServiceConstruction\Definition\References\TypeCollectionReference,
-    Vobla\ServiceLocating\DefaultImpls\TagServiceLocator;
+    Vobla\ServiceLocating\DefaultImpls\TagServiceLocator,
+    Vobla\ServiceLocating\DefaultImpls\TypeServiceLocator,
+    Vobla\ServiceConstruction\Definition\References\TypeReference;
 
 require_once 'fixtures/classes.php';
 require_once __DIR__.'/../../../../bootstrap.php';
@@ -70,8 +72,9 @@ class ReferencesWeaverAssemblerTest extends \PHPUnit_Framework_TestCase
                 'tagReferenceProperty' => new TagReference('fooTag1'),
                 'tagsCollectionSet' => new TagsCollectionReference(array('fooTag1', 'barTag1'), 'set'),
                 'tagsCollectionMap' => new TagsCollectionReference(array('fooTag2', 'barTag2'), 'map'),
-//                'typeCollectionSet' => new TypeCollectionReference('megaType', 'set'),
-//                'typeCollectionMap' => new TypeCollectionReference('megaType', 'map')
+                'typeReferenceProperty' => new TypeReference('megaType'),
+                'typeCollectionSet' => new TypeCollectionReference('megaType', 'set'),
+                'typeCollectionMap' => new TypeCollectionReference('megaType', 'map')
             );
         })
         ->createMock();
@@ -82,16 +85,15 @@ class ReferencesWeaverAssemblerTest extends \PHPUnit_Framework_TestCase
             $tc->assertTrue(isset($args[$paramName]), 'Expected parameter was not injected.');
 
             $rvs = array(
+                // propertyName => expected-resolved-value
                 'idProperty' => 'resolvedIdReferenceProperty',
                 'qlrProperty' => 'qlrPropertyService',
                 'tagReferenceProperty' => 'resolvedIdForFooTag1Value',
                 'tagsCollectionSet' => array('resolvedIdForFooTag1Value', 'resolvedIdForBarTag1Value'),
                 'tagsCollectionMap' => array('resolvedIdForFooTag2' => 'resolvedIdForFooTag2Value', 'resolvedIdForBarTag2' => 'resolvedIdForBarTag2Value'),
-//                'resolvedIdForFooTag2' => 'resolvedIdForFooTag2Value',
-//                'tagsCollectionSet' => array('resolvedBazService', 'resolvedBazService'),
-//                'tagsCollectionMap' => 'resolvedTagsCollectionMap',
-//                'typeCollectionSet' => 'resolvedTypeCollectionSet',
-//                'typeCollectionMap' => 'resolvedTypeCollectionMap'
+                'typeReferenceProperty' => 'resolvedIdForMegaTypeValue',
+                'typeCollectionSet' => array('resolvedIdForMegaTypeValue'),
+                'typeCollectionMap' => array('resolvedIdForMegaType' => 'resolvedIdForMegaTypeValue')
             );
 
             $tc->assertTrue(
@@ -102,9 +104,9 @@ class ReferencesWeaverAssemblerTest extends \PHPUnit_Framework_TestCase
                 )
             );
 
-            $tc->assertEquals($paramValue, $rvs[$paramName]);
+            $tc->assertEquals($paramValue, $rvs[$paramName], "Expected value to be injected doesn't match.");
         };
-        $ri = $this->mf->createTestCaseAware(ReferenceInjector::CLAZZ)->addMethod('inject', $injectMethod, 5)->createMock();
+        $ri = $this->mf->createTestCaseAware(ReferenceInjector::CLAZZ)->addMethod('inject', $injectMethod, 8)->createMock();
 
         $proceedMethod = function($self, $am, $obj) use($tc, $serviceObj) {
             $tc->assertSame($serviceObj, $obj);
@@ -118,11 +120,12 @@ class ReferencesWeaverAssemblerTest extends \PHPUnit_Framework_TestCase
                 TagServiceLocator::createCriteria('fooTag1') => array('resolvedIdForFooTag1'),
                 TagServiceLocator::createCriteria('fooTag2') => array('resolvedIdForFooTag2'),
                 TagServiceLocator::createCriteria('barTag1') => array('resolvedIdForBarTag1'),
-                TagServiceLocator::createCriteria('barTag2') => array('resolvedIdForBarTag2')
+                TagServiceLocator::createCriteria('barTag2') => array('resolvedIdForBarTag2'),
+                TypeServiceLocator::createCriteria('megaType') => array('resolvedIdForMegaType')
             );
 
             return $map[$c];
-        }, 5)
+        }, 8)
         ->createMock();
 
         $c = $this->mf->createTestCaseAware(Container::clazz())
@@ -133,7 +136,8 @@ class ReferencesWeaverAssemblerTest extends \PHPUnit_Framework_TestCase
                 'resolvedIdForFooTag1' => 'resolvedIdForFooTag1Value',
                 'resolvedIdForBarTag1' => 'resolvedIdForBarTag1Value',
                 'resolvedIdForFooTag2' => 'resolvedIdForFooTag2Value',
-                'resolvedIdForBarTag2' => 'resolvedIdForBarTag2Value'
+                'resolvedIdForBarTag2' => 'resolvedIdForBarTag2Value',
+                'resolvedIdForMegaType' => 'resolvedIdForMegaTypeValue'
             );
 
             $tc->assertTrue(
@@ -142,7 +146,7 @@ class ReferencesWeaverAssemblerTest extends \PHPUnit_Framework_TestCase
             );
 
             return $map[$id];
-        }, 6)
+        }, 9)
         ->addMethod('getServiceByQualifier', function($self, $qualifier) use($tc) {
             $tc->assertEquals(
                 'fooQlr',

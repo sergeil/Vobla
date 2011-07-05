@@ -27,7 +27,7 @@ namespace Vobla\ServiceLocating;
 use Vobla\Container,
     Vobla\ServiceLocating\DefaultImpls\QualifierServiceLocator,
     Vobla\ServiceLocating\DefaultImpls\TagServiceLocator,
-    Vobla\ServiceLocating\DefaultImpls\Type\TypeServiceLocator;
+    Vobla\ServiceLocating\DefaultImpls\TypeServiceLocator;
 
 /**
  *

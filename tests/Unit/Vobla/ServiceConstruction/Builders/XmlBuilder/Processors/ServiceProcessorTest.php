@@ -33,7 +33,9 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Definition\References\QualifiedReference,
     Vobla\ServiceConstruction\Builders\ServiceIdGenerator,
     Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
-    Vobla\ServiceConstruction\Definition\References\TagReference;
+    Vobla\ServiceConstruction\Definition\References\TagReference,
+    Vobla\ServiceConstruction\Definition\References\TypeReference,
+    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference;
 
 /**
  *
@@ -71,15 +73,20 @@ class ServiceProcessorTest extends \PHPUnit_Framework_TestCase
  xmlns:foo="fooNs">
     <ref id="fooId"></ref>
     <ref qualifier="fooQc"></ref>
+
     <ref tag="fooTag" is-optional="false"/>
     <ref tags-set="fooTag1, barTag1" is-optional="true" />
     <ref tags-map="fooTag2, barTag2" />
+
+    <ref type="fooType" />
+    <ref type-set="fooType" is-optional="true" />
+    <ref type-map="fooType" />
 </context>
 XML;
 
         $xmlContext = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
         $xmlChildren = $xmlContext->children();
-        list($ref1Xml, $ref2Xml, $ref3Xml, $ref4Xml, $ref5Xml) = $xmlChildren;
+        list($ref1Xml, $ref2Xml, $ref3Xml, $ref4Xml, $ref5Xml, $ref6Xml, $ref7Xml, $ref8Xml) = $xmlChildren;
 
         /* @var \IdReference\ServiceConstruction\Definition\ServiceReference $result */
         $result = $this->sp->parseRef($ref1Xml);
@@ -163,6 +170,64 @@ XML;
         $this->assertEquals(
             array('fooTag2', 'barTag2'),
             $result->getTags()
+        );
+        $this->assertEquals(
+            'map',
+            $result->getStereotype()
+        );
+        $this->assertTrue($result->isOptional());
+
+
+        /* @var \Vobla\ServiceConstruction\Definition\References\TypeReference $result */
+        $result = $this->sp->parseRef($ref6Xml);
+        $this->assertType(
+            TypeReference::clazz(),
+            $result,
+            sprintf(
+                '%s::parseRef must return an instance of %s when "type" attribute is provided',
+                TypeReference::clazz(), TagReference::clazz()
+            )
+        );
+        $this->assertEquals(
+            'fooType',
+            $result->getType(),
+            "'type' value doesn't match."
+        );
+        $this->assertTrue($result->isOptional());
+
+        /* @var \Vobla\ServiceConstruction\Definition\References\TypeCollectionReference $result */
+        $result = $this->sp->parseRef($ref7Xml);
+        $this->assertType(
+            TypeCollectionReference::clazz(),
+            $result,
+            sprintf(
+                '%s::TypeCollectionReference must return an instance of %s when "type-set" attribute is provided ( stereotype = set )',
+                ServiceProcessor::clazz(), TypeCollectionReference::clazz()
+            )
+        );
+        $this->assertEquals(
+            'fooType',
+            $result->getType()
+        );
+        $this->assertEquals(
+            'set',
+            $result->getStereotype()
+        );
+        $this->assertTrue($result->isOptional());
+
+        /* @var \Vobla\ServiceConstruction\Definition\References\TypeCollectionReference $result */
+        $result = $this->sp->parseRef($ref8Xml);
+        $this->assertType(
+            TypeCollectionReference::clazz(),
+            $result,
+            sprintf(
+                '%s::parseRef must return an instance of %s when "type-map" attribute is provided ( stereotype = map )',
+                ServiceProcessor::clazz(), TypeCollectionReference::clazz()
+            )
+        );
+        $this->assertEquals(
+            'fooType',
+            $result->getType()
         );
         $this->assertEquals(
             'map',
@@ -733,7 +798,8 @@ XML;
              factory-service="fooFactoryService"
              is-abstract="false"
              init-method="fooInitMethod"
-             tags="fooTag, barTag">
+             tags="fooTag, barTag"
+             not-by-type-wiring-candidate="true">
 
              <constructor />
 
@@ -823,6 +889,11 @@ XML;
             array('fooTag', 'barTag'),
             $def->getMetaEntry('tags'),
             'Tags attribute was not properly processed.'
+        );
+
+        $this->assertTrue(
+            $def->getMetaEntry('notByTypeWiringCandidate'),
+            '"not-by-type-wiring-candidate" attribute was not properly processed.'
         );
     }
 

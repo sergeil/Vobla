@@ -28,7 +28,8 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\GeneralAttr
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\ConstructorProcessor,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\PropertiesProcessor,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TagsProcessor,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\QualifierProcessor;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\QualifierProcessor,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TypeProcessor;
 
 /**
  *
@@ -48,7 +49,8 @@ class DefaultProcessorsProvider implements ProcessorsProvider
             new ConstructorProcessor(),
             new PropertiesProcessor(),
             new QualifierProcessor(),
-            new TagsProcessor()
+            new TagsProcessor(),
+            new TypeProcessor()
         );
     }
 

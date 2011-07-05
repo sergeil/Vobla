@@ -36,6 +36,8 @@ class AutowiredMap extends Annotation
 
     public $tags = array();
 
+    public $isOptional;
+
     /**
      * @return string
      */

@@ -96,11 +96,11 @@ class PropertiesProcessor extends AbstractProcessor
 
             $refDef = array();
             if ($awAnn) {
-                $refDef = $this->handleAutowired($reflProp, $awAnn);
+                $refDef = $this->handleAutowired($serviceDefinition, $reflProp, $awAnn);
             } else if ($awSetAnn) {
-                $refDef = $this->handleAutowiredSet($reflProp, $awSetAnn);
+                $refDef = $this->handleAutowiredSet($serviceDefinition, $reflProp, $awSetAnn);
             } else if ($awMapAnn) {
-                $refDef = $this->handleAutowiredMap($reflProp, $awMapAnn);
+                $refDef = $this->handleAutowiredMap($serviceDefinition, $reflProp, $awMapAnn);
             }
             $result[$reflProp->getName()] = $refDef;
         }
@@ -108,7 +108,7 @@ class PropertiesProcessor extends AbstractProcessor
         $serviceDefinition->setArguments($result);
     }
 
-    protected function handleAutowired(\ReflectionProperty $reflProp, Autowired $awAnn)
+    protected function handleAutowired(ServiceDefinition $serviceDefinition, \ReflectionProperty $reflProp, Autowired $awAnn)
     {
         /* @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $ior */
         $ior = clone $this->getInjectorsOrderResolver();
@@ -126,23 +126,29 @@ class PropertiesProcessor extends AbstractProcessor
                 return new TagReference($awAnn->tag, $awAnn->isOptional);
             }
         });
-        $ior->setByTypeCallback(function() use($awAnn) {
+        $ior->setByTypeCallback(function() use($awAnn, $serviceDefinition) {
             if ($awAnn->type) {
-                return new TypeReference($awAnn->type, $awAnn->isOptional);
+                /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $serviceDefinition */
+                $notByTypeWiringCandidate = $serviceDefinition->getMetaEntry('notByTypeWiringCandidate');
+                // proceeding only if this class was not marked as a non-candidate
+                // for by-type autowiring
+                if ($notByTypeWiringCandidate === null) {
+                    return new TypeReference($awAnn->type, $awAnn->isOptional);
+                }
             }
         });
 
         return $ior->resolve();
     }
 
-    protected function handleAutowiredSet(\ReflectionProperty $reflProp, AutowiredSet $awSetAnn)
+    protected function handleAutowiredSet(ServiceDefinition $serviceDefinition, \ReflectionProperty $reflProp, AutowiredSet $awSetAnn)
     {
-        return $this->createInjectorsOrderResolverForCollection($awSetAnn, 'set')->resolve();
+        return $this->createInjectorsOrderResolverForCollection($serviceDefinition, $awSetAnn, 'set')->resolve();
     }
 
-    protected function handleAutowiredMap(\ReflectionProperty $reflProp, AutowiredMap $awMapAnn)
+    protected function handleAutowiredMap(ServiceDefinition $serviceDefinition, \ReflectionProperty $reflProp, AutowiredMap $awMapAnn)
     {
-        return $this->createInjectorsOrderResolverForCollection($awMapAnn, 'map')->resolve();
+        return $this->createInjectorsOrderResolverForCollection($serviceDefinition, $awMapAnn, 'map')->resolve();
     }
 
     /**
@@ -150,18 +156,24 @@ class PropertiesProcessor extends AbstractProcessor
      * @param string $type  set or map
      * @return \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver
      */
-    private function createInjectorsOrderResolverForCollection($annotation, $type)
+    private function createInjectorsOrderResolverForCollection(ServiceDefinition $serviceDefinition, $annotation, $type)
     {
         /* @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $ior */
         $ior = clone $this->getInjectorsOrderResolver();
         $ior->setByTagCallback(function() use($annotation, $type) {
             if ($annotation->tags) {
-                return new TagsCollectionReference($annotation->tags, $type);
+                return new TagsCollectionReference($annotation->tags, $type, $annotation->isOptional);
             }
         });
-        $ior->setByTypeCallback(function() use($annotation, $type) {
+        $ior->setByTypeCallback(function() use($annotation, $type, $serviceDefinition) {
             if ($annotation->type) {
-                return new TypeCollectionReference($annotation->type, $type);
+                /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $serviceDefinition */
+                $notByTypeWiringCandidate = $serviceDefinition->getMetaEntry('notByTypeWiringCandidate');
+                // proceeding only if this class was not marked as a non-candidate
+                // for by-type autowiring
+                if ($notByTypeWiringCandidate === null) {
+                    return new TypeCollectionReference($annotation->type, $type, $annotation->isOptional);
+                }
             }
         });
 

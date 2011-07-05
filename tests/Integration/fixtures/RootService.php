@@ -18,6 +18,13 @@ class RootService
     public $cacheMap;
 
     /**
+     * @Vobla\AutowiredMap(
+    *      type="Controller"
+     * )
+     */
+    public $controllers;
+
+    /**
      * @Vobla\Constructor(
      *     params={
      *         @Vobla\Parameter(name="loggerFactory", qualifier="loggingFacility")

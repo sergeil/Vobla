@@ -66,8 +66,12 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
             'No files must have been skipped during scanning.'
         );
 
-        $this->tc($container);
-
+        try {
+            $this->tc($container);
+        } catch (\Exception $e) {
+            //\Vobla\Tools\Toolkit::printException($e);
+            throw $e;
+        }
     }
 
     public function testItWithXmls()
@@ -82,15 +86,20 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
                 $p->setPathResolver(new StaticPathResolver(__DIR__.'/fixtures/context/'));
             }
         }
-        
-        $xb->processXml(file_get_contents(__DIR__.'/fixtures/context/a.xml'), $container);
 
-        $this->tc($container);
+        try {
+            $xb->processXml(file_get_contents(__DIR__ . '/fixtures/context/a.xml'), $container);
+
+            $this->tc($container);
+        } catch (\Exception $e) {
+            //\Vobla\Tools\Toolkit::printException($e);
+            throw $e;
+        }
     }
 
     protected function tc(Container $container)
     {
-        /* @var RootService $rootService1 */
+        /* @var \RootService $rootService1 */
         $rootService1 = $container->getServiceById('rootService');
         $this->assertType('RootService', $rootService1);
 
@@ -117,5 +126,11 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertType('ApcDriver', $cacheMap->cacheDrivers['apcCacheDriver']);
         $this->assertType('ArrayDriver', $cacheMap->cacheDrivers['arrayCacheDriver']);
         $this->assertType('MemcacheDriver', $cacheMap->cacheDrivers['memcacheCacheDriver']);
+
+        $this->assertTrue(is_array($rootService1->controllers));
+        $this->assertEquals(2, sizeof($rootService1->controllers));
+        $this->assertEquals(array('dashboardController', 'settingsController'), array_keys($rootService1->controllers));
+        $this->assertType(\DashboardController::clazz(),$rootService1->controllers['dashboardController']);
+        $this->assertType(\SettingsController::clazz(),$rootService1->controllers['settingsController']);
     }
 }

@@ -279,3 +279,28 @@ class GeneralizedAutowiringClass extends AutowiringClass
      */
     protected $barMap;
 }
+
+/**
+ * @Vobla\NotByTypeWiringCandidate
+ */
+class ClassWithNotByTypeWiringCandidateAnnotation
+{
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}
+
+class ClassWithoutNotByTypeWiringCandidate
+{
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}

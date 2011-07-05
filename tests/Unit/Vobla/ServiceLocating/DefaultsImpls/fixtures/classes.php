@@ -22,13 +22,29 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Testing;
+namespace Vobla\ServiceLocating\DefaultImpls;
 
-/**
- *
- * @author Sergei Lissovski <sergei.lissovski@gmail.com>
- */ 
-class Orm extends Service
+interface SomeInterface1
 {
-    protected $id = 'Orm';
 }
+
+interface SomeInterface2
+{
+}
+
+class FirstClass implements SomeInterface1
+{
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}
+
+class SecondClass extends FirstClass implements SomeInterface2
+{
+
+}
+

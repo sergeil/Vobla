@@ -181,7 +181,9 @@ class Container
                 $obj = $this->getServiceBuilder()->process($definition);
             } catch (\Exception $e) {
                 throw new Exception(
-                    sprintf('Unable to construct a service with ID "%s"', $id)
+                    sprintf('Unable to construct a service with ID "%s"', $id),
+                    null,
+                    $e
                 );
             }
 

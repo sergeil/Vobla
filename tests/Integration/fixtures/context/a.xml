@@ -11,6 +11,9 @@
 
         <properties>
             <property name="cacheMap" ref="cacheMap" />
+            <property name="controllers">
+                <ref type-map="Controller" />
+            </property>
         </properties>
     </service>
 </context>

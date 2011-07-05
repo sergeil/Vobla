@@ -36,6 +36,8 @@ class AutowiredSet extends Annotation
     
     public $tags = array();
 
+    public $isOptional;
+
     /**
      * @return string
      */
