@@ -1,7 +1,19 @@
 <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://vobla-project.org/xsd/context">
 
-    <service id="cacheMap" class-name="CacheMap" scope="prototype" />
+    <service id="cacheMap"
+             class-name="CacheMap"
+             scope="prototype">
+        <properties>
+            <property name="cacheDrivers">
+                <ref tags-map="cacheDriver" />
+            </property>
+        </properties>
+    </service>
+
+    <service id="apcCacheDriver" class-name="ApcDriver" tags="cacheDriver" />
+    <service id="arrayCacheDriver" class-name="ArrayDriver" tags="cacheDriver" />
+    <service id="memcacheCacheDriver" class-name="MemcacheDriver" tags="cacheDriver" />
 
     <service qualifier="loggingFacility" class-name="LoggerFactory" />
 </context>

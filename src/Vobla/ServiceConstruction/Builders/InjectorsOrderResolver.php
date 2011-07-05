@@ -74,7 +74,7 @@ class InjectorsOrderResolver
         return $this->byTypeCallback;
     }
 
-    public function getPriorityPolicy() // make extensible
+    final public function getPriorityPolicy() // TODO make extensible
     {
         return array(
             'qualifier', 'tag', 'type', 'id'

@@ -31,7 +31,9 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Definition\References\IdReference,
     Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder,
     Vobla\ServiceConstruction\Definition\References\QualifiedReference,
-    Vobla\ServiceConstruction\Builders\ServiceIdGenerator;
+    Vobla\ServiceConstruction\Builders\ServiceIdGenerator,
+    Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
+    Vobla\ServiceConstruction\Definition\References\TagReference;
 
 /**
  *
@@ -69,13 +71,15 @@ class ServiceProcessorTest extends \PHPUnit_Framework_TestCase
  xmlns:foo="fooNs">
     <ref id="fooId"></ref>
     <ref qualifier="fooQc"></ref>
+    <ref tag="fooTag" is-optional="false"/>
+    <ref tags-set="fooTag1, barTag1" is-optional="true" />
+    <ref tags-map="fooTag2, barTag2" />
 </context>
 XML;
 
         $xmlContext = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
         $xmlChildren = $xmlContext->children();
-        $ref1Xml = $xmlChildren[0];
-        $ref2Xml = $xmlChildren[1];
+        list($ref1Xml, $ref2Xml, $ref3Xml, $ref4Xml, $ref5Xml) = $xmlChildren;
 
         /* @var \IdReference\ServiceConstruction\Definition\ServiceReference $result */
         $result = $this->sp->parseRef($ref1Xml);
@@ -99,7 +103,7 @@ XML;
             QualifiedReference::clazz(),
             $result,
             sprintf(
-                "%s::parserRef must return an instance of %s when 'qualifier' attribute is provided",
+                "%s::parseRef must return an instance of %s when 'qualifier' attribute is provided",
                 ServiceProcessor::clazz(), QualifiedReference::clazz()
             )
         );
@@ -108,6 +112,63 @@ XML;
             $result->getQualifier(),
             "Qualifier value doesn't match"
         );
+
+        /* @var \Vobla\ServiceConstruction\Definition\References\TagReference $result */
+        $result = $this->sp->parseRef($ref3Xml);
+        $this->assertType(
+            TagReference::clazz(),
+            $result,
+            sprintf(
+                '%s::parseRef must return an instance of %s when "tag" attribute is provided',
+                ServiceProcessor::clazz(), TagReference::clazz()
+            )
+        );
+        $this->assertEquals(
+            'fooTag',
+            $result->getTag(),
+            "'Tag' value doesn't match."
+        );
+        $this->assertFalse($result->isOptional());
+
+        /* @var \Vobla\ServiceConstruction\Definition\References\TagsCollectionReference $result */
+        $result = $this->sp->parseRef($ref4Xml);
+        $this->assertType(
+            TagsCollectionReference::clazz(),
+            $result,
+            sprintf(
+                '%s::parseRef must return an instance of %s when "tags-set" attribute is provided ( stereotype = set )',
+                ServiceProcessor::clazz(), TagsCollectionReference::clazz()
+            )
+        );
+        $this->assertEquals(
+            array('fooTag1', 'barTag1'),
+            $result->getTags()
+        );
+        $this->assertEquals(
+            'set',
+            $result->getStereotype()
+        );
+        $this->assertTrue($result->isOptional());
+
+        /* @var \Vobla\ServiceConstruction\Definition\References\TagsCollectionReference $result */
+        $result = $this->sp->parseRef($ref5Xml);
+        $this->assertType(
+            TagsCollectionReference::clazz(),
+            $result,
+            sprintf(
+                '%s::parseRef must return an instance of %s when "tags-map" attribute is provided ( stereotype = map )',
+                ServiceProcessor::clazz(), TagsCollectionReference::clazz()
+            )
+        );
+        $this->assertEquals(
+            array('fooTag2', 'barTag2'),
+            $result->getTags()
+        );
+        $this->assertEquals(
+            'map',
+            $result->getStereotype()
+        );
+        $this->assertTrue($result->isOptional());
     }
 
     public function testParseArrayElRef()
@@ -671,7 +732,8 @@ XML;
              factory-method="fooFactoryMethod"
              factory-service="fooFactoryService"
              is-abstract="false"
-             init-method="fooInitMethod">
+             init-method="fooInitMethod"
+             tags="fooTag, barTag">
 
              <constructor />
 
@@ -755,6 +817,12 @@ XML;
             array('properties'),
             $def->getArguments(),
             'Properties don\'t match'
+        );
+
+        $this->assertSame(
+            array('fooTag', 'barTag'),
+            $def->getMetaEntry('tags'),
+            'Tags attribute was not properly processed.'
         );
     }
 

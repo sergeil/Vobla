@@ -85,7 +85,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         
         $xb->processXml(file_get_contents(__DIR__.'/fixtures/context/a.xml'), $container);
 
-//        $this->tc($container);
+        $this->tc($container);
     }
 
     protected function tc(Container $container)
@@ -105,7 +105,10 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
         /* @var \CacheMap $cacheMap */
         $cacheMap = $rootService1->cacheMap;
-        $this->assertTrue(is_array($cacheMap->cacheDrivers));
+        $this->assertTrue(
+            is_array($cacheMap->cacheDrivers),
+            "RootService::cacheDrivers property wasn't initialized as array"
+        );
         $this->assertEquals(3, sizeof($cacheMap->cacheDrivers));
         $this->assertEquals(
             array('apcCacheDriver', 'arrayCacheDriver', 'memcacheCacheDriver'),

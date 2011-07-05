@@ -29,14 +29,41 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\Exception,
     Vobla\ServiceConstruction\Definition\References\IdReference,
-    Vobla\ServiceConstruction\Definition\References\QualifiedReference;
+    Vobla\ServiceConstruction\Definition\References\QualifiedReference,
+    Vobla\ServiceConstruction\Builders\InjectorsOrderResolver,
+    Vobla\ServiceConstruction\Definition\References\TagReference,
+    Vobla\ServiceConstruction\Definition\References\TagsCollectionReference;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class ServiceProcessor implements Processor
 {
+    /**
+     * @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver
+     */
+    protected $injectorsOrderResolver;
+
+    /**
+     * @param \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $injectorsOrderResolver
+     */
+    public function setInjectorsOrderResolver(InjectorsOrderResolver $injectorsOrderResolver)
+    {
+        $this->injectorsOrderResolver = $injectorsOrderResolver;
+    }
+
+    /**
+     * @return \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver
+     */
+    public function getInjectorsOrderResolver()
+    {
+        if (null === $this->injectorsOrderResolver) {
+            $this->injectorsOrderResolver = new InjectorsOrderResolver();
+        }
+
+        return $this->injectorsOrderResolver;
+    }
+
     public function processXml($xmlBody, Container $container, XmlBuilder $xmlBuilder)
     {
         $xmlEl = new \SimpleXMLElement($xmlBody, 0, false, XsdNamespaces::CONTEXT);
@@ -76,6 +103,17 @@ class ServiceProcessor implements Processor
 
         $defMethods = get_class_methods($def);
         foreach ($xmlAttrs as $name=>$attribute) {
+            if ($name == 'tags') {
+                $rawTags = explode(',', $attribute);
+                $tags = array();
+                foreach ($rawTags as $rawTag) {
+                    $tags[] = trim($rawTag);
+                }
+
+                $def->setMetaEntry('tags', $tags);
+                continue;
+            }
+
             $setterName = $this->createMethodNameFromAttributeName($name);
             if (in_array($setterName, $defMethods)) {
                 $def->{$setterName}((string)$attribute);
@@ -118,7 +156,58 @@ class ServiceProcessor implements Processor
             return new QualifiedReference((string)$refAttrsXml['qualifier']);
         }
 
-        throw new Exception('"id" or "qualifier" attribute is mandatory!');
+        $sp = $this;
+        $ior = clone $this->getInjectorsOrderResolver();
+        $ior->setByIdCallback(function() use($refAttrsXml) {
+            if (isset($refAttrsXml['id'])) {
+                return new IdReference((string)$refAttrsXml['id']);
+            }
+        });
+        $ior->setByQualifierCallback(function() use($refAttrsXml) {
+            if (isset($refAttrsXml['qualifier'])) {
+                return new QualifiedReference((string)$refAttrsXml['qualifier']);
+            }
+        });
+        $ior->setByTagCallback(function() use($refAttrsXml, $sp) {
+            $isOptional = true;
+            if (isset($refAttrsXml['is-optional']) && (string)$refAttrsXml['is-optional'] == 'false') {
+                $isOptional = false;
+            }
+
+            if (isset($refAttrsXml['tag'])) {
+                return new TagReference((string)$refAttrsXml['tag'], $isOptional);
+            } else if (isset($refAttrsXml['tags-set'])) {
+                return new TagsCollectionReference(
+                    $sp->convertStringToTags((string)$refAttrsXml['tags-set']),
+                    'set',
+                    $isOptional
+                );
+            } else if (isset($refAttrsXml['tags-map'])) {
+                return new TagsCollectionReference(
+                    $sp->convertStringToTags((string)$refAttrsXml['tags-map']),
+                    'map',
+                    $isOptional
+                );
+            }
+        });
+
+        $result = $ior->resolve();
+        if (!$result) {
+            $params = array('id', 'qualifier', 'tags-set', 'tags-map', 'tags');
+            throw new Exception('One of these attributes is required to be provided: '.implode(', ', $params).'.');
+        }
+
+        return $result;
+    }
+
+    public function convertStringToTags($input)
+    {
+        $expInput = explode(',', $input);
+        $tags = array();
+        foreach ($expInput as $segment) {
+            $tags[] = trim($segment);
+        }
+        return $tags;
     }
 
     public function parseArray(\SimpleXMLElement $arrayXml)
