@@ -33,6 +33,10 @@ require_once __DIR__ . '/fixtures/CacheDrivers/CacheDriver.php';
 require_once __DIR__ . '/fixtures/CacheDrivers/ApcDriver.php';
 require_once __DIR__ . '/fixtures/CacheDrivers/MemcacheDriver.php';
 require_once __DIR__ . '/fixtures/CacheDrivers/ArrayDriver.php';
+require_once __DIR__ . '/fixtures/Controllers/Controller.php';
+require_once __DIR__ . '/fixtures/Controllers/DashboardController.php';
+require_once __DIR__ . '/fixtures/Controllers/TestController.php';
+require_once __DIR__ . '/fixtures/Controllers/SettingsController.php';
 
 
 use Vobla\Container,
