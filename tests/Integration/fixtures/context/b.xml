@@ -13,7 +13,13 @@
 
     <service id="apcCacheDriver" class-name="ApcDriver" tags="cacheDriver" />
     <service id="arrayCacheDriver" class-name="ArrayDriver" tags="cacheDriver" />
-    <service id="memcacheCacheDriver" class-name="MemcacheDriver" tags="cacheDriver" />
+    <service id="memcacheCacheDriver" class-name="MemcacheDriver" tags="cacheDriver">
+        <properties>
+            <property name="serverUrl">
+                <conf-ref name="memcacheServerUrl" />
+            </property>
+        </properties>
+    </service>
 
     <service qualifier="loggingFacility" class-name="LoggerFactory" />
 

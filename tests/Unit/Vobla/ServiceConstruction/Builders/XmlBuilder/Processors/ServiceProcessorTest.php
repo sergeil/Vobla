@@ -35,7 +35,9 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
     Vobla\ServiceConstruction\Definition\References\TagReference,
     Vobla\ServiceConstruction\Definition\References\TypeReference,
-    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference;
+    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference,
+    Vobla\ConfigHolder,
+    Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference;
 
 /**
  *
@@ -552,6 +554,37 @@ XML;
         );
     }
 
+    public function testParseServicePropertiesPropertyChildConfRefTag()
+    {
+        $xml = <<<XML
+        <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		         xmlns="http://vobla-project.org/xsd/context"
+		         xmlns:foo="fooNs">
+            <cfg-ref name="fooProp1" is-optional="true" />
+            <cfg-ref name="fooProp2" is-optional="false" />
+        </context>
+XML;
+
+        $xmlEl = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
+        list($fooProp1Xml, $fooProp2Xml) = $xmlEl->children();
+
+        /* @var \Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference $fooProp1Result */
+        $fooProp1Result = $this->sp->parseServicePropertiesPropertyChildConfRefTag($fooProp1Xml);
+        $this->assertType(
+          ConfigPropertyReference::clazz(),
+            $fooProp1Result
+        );
+        $this->assertTrue($fooProp1Result->isOptional());
+
+        /* @var \Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference $fooProp2Result */
+        $fooProp2Result = $this->sp->parseServicePropertiesPropertyChildConfRefTag($fooProp2Xml);
+        $this->assertType(
+          ConfigPropertyReference::clazz(),
+            $fooProp2Result
+        );
+        $this->assertFalse($fooProp2Result->isOptional());
+    }
+
     public function testParseServicePropertiesTag()
     {
         $xml = <<<XML
@@ -980,14 +1013,111 @@ XML;
         $sp->processXml($xml, $container, $xmlBuilder);
     }
 
+    public function testParseConfigTag()
+    {
+        $tc = $this;
+
+        $xml = <<<XML
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://vobla-project.org/xsd/context"
+		 xmlns:foo="fooNs">
+
+    <config>
+        <property name="prop1" value="value1" />
+        <property name="prop2">
+            <array>
+                <el index="foo" value="bar" />
+            </array>
+        </property>
+    </config>
+</context>
+XML;
+
+        $xmlEl = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
+        $children = $xmlEl->children();
+        $configXml = $children[0];
+
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addMethod('parseConfigPropertyTag', function($self, $propertyXmlEl) use($tc) {
+            $tc->assertEquals('property', $propertyXmlEl->getName());
+
+            $attrs = $propertyXmlEl->attributes();
+            return $attrs['name'].'Value';
+        }, 2)
+        ->addDelegateMethod('parseConfigTag', 1)
+        ->createMock();
+
+        $result = $sp->parseConfigTag($configXml);
+        $this->assertTrue(
+            is_array($result),
+            sprintf('%s::parseConfigPropertyTag execution always must be an array!', ServiceProcessor::clazz())
+        );
+
+        $ids = array_keys($result);
+        sort($ids);
+        $this->assertEquals(array('prop1', 'prop2'), $ids);
+
+        $values = array_values($result);
+        sort($values);
+        $this->assertEquals(array('prop1Value', 'prop2Value'), $values);
+    }
+
+    public function testParseConfigPropertyTag()
+    {
+        $tc = $this;
+
+        $xml = <<<XML
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://vobla-project.org/xsd/context"
+		 xmlns:foo="fooNs">
+        
+        <property name="prop1" value="value1" />
+        <property name="prop2">
+            <array>
+                <el index="foo" value="bar" />
+            </array>
+        </property>
+</context>
+XML;
+
+        $xmlEl = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
+        $children = $xmlEl->children();
+        list($prop1Xml, $prop2Xml, $prop3Xml) = $children;
+
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addDelegateMethod('parseConfigPropertyTag', 2)
+        ->addMethod('parseArray', 'array-value', 1)
+        ->createMock();
+
+        $prop1Value = $sp->parseConfigPropertyTag($prop1Xml);
+        $this->assertEquals('value1', $prop1Value);
+
+        $prop2Value = $sp->parseConfigPropertyTag($prop2Xml);
+        $this->assertEquals('array-value', $prop2Value);
+    }
+
     public function testProcessXml_integration()
     {
-                $xml = <<<XML
+        $tc = $this;
+
+        $xml = <<<XML
 <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xmlns="http://vobla-project.org/xsd/context"
 		 xmlns:foo="fooNs">
 
 	<foo:service />
+
+	<config>
+        <property name="cfg1" value="cfg1Value" />
+        <property name="cfg2">cfg2Value</property>
+        <property name="cfg3">
+            <array>
+                <el index="fooIndex">fooIndexValue</el>
+            </array>
+        </property>
+    </config>
 
     <service id="fooServiceId"
              factory-method="fooFactoryMethod"
@@ -1023,10 +1153,29 @@ XML;
 
         $defs = array();
 
+        $configHolder = $this->mf->createTestCaseAware(ConfigHolder::clazz())
+        ->addMethod('set', function($self, $name, $value) use($tc) {
+            switch ($name) {
+                case 'cfg1':
+                    $tc->assertEquals('cfg1Value', $value);
+                break;
+
+                case 'cfg2':
+                    $tc->assertEquals('cfg2Value', $value);
+                break;
+
+                case 'cfg3':
+                    $tc->assertEquals(array('fooIndex' => 'fooIndexValue'), $value);
+                break;
+            }
+        }, 3)
+        ->createMock();
+
         $container = $this->mf->createTestCaseAware(Container::clazz())
         ->addMethod('addServiceDefinition', function($self, $id, $argDef) use(&$defs) {
             $defs[$id] = $argDef;
         }, 1)
+        ->addMethod('getConfigHolder', $configHolder, 1)
         ->createMock();
 
         $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())->createMock();

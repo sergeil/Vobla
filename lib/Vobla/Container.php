@@ -58,6 +58,11 @@ class Container
     protected $serviceLocator;
 
     /**
+     * @var \Vobla\ConfigHolder
+     */
+    protected $configHolder;
+
+    /**
      * @var \Vobla\Configuration
      */
     protected $configuration;
@@ -161,6 +166,23 @@ class Container
         return $this->definitionsHolder;
     }
 
+    public function setConfigHolder($configHolder)
+    {
+        $this->configHolder = $configHolder;
+    }
+
+    /**
+     * @return \Vobla\ConfigHolder
+     */
+    public function getConfigHolder()
+    {
+        if (null === $this->configHolder) {
+            $this->configHolder = new ConfigHolder();
+        }
+
+        return $this->configHolder;
+    }
+
     public function addServiceDefinition($id, ServiceDefinition $serviceDefinition)
     {
         $this->getDefinitionsHolder()->register($id, $serviceDefinition);
@@ -209,6 +231,8 @@ class Container
 
         return $this->getServiceById($result[0]);
     }
+
+
         
     static public function clazz()
     {

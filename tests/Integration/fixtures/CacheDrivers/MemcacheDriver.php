@@ -8,5 +8,8 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations as Vobla;
  */
 class MemcacheDriver implements CacheDriver
 {
-    
+    /**
+     * @Vobla\ConfigProperty(name="memcacheServerUrl")
+     */
+    public $serverUrl;
 }

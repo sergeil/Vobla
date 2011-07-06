@@ -56,6 +56,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
     public function testItWithAnnotations()
     {
         $container = new Container();
+        $container->getConfigHolder()->set('memcacheServerUrl', 'some-foo-memcache-url');
 
         $ab = new AnnotationsBuilder();
         $skippedFilesWithExceptions = $ab->processPath($container, __DIR__.'/fixtures');
@@ -73,7 +74,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         try {
             $this->tc($container);
         } catch (\Exception $e) {
-            //\Vobla\Tools\Toolkit::printException($e);
+            \Vobla\Tools\Toolkit::printException($e);
             throw $e;
         }
     }
@@ -130,6 +131,8 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertType('ApcDriver', $cacheMap->cacheDrivers['apcCacheDriver']);
         $this->assertType('ArrayDriver', $cacheMap->cacheDrivers['arrayCacheDriver']);
         $this->assertType('MemcacheDriver', $cacheMap->cacheDrivers['memcacheCacheDriver']);
+
+        $this->assertEquals($cacheMap->cacheDrivers['memcacheCacheDriver']->serverUrl, 'some-foo-memcache-url');
 
         $this->assertTrue(is_array($rootService1->controllers));
         $this->assertEquals(2, sizeof($rootService1->controllers));

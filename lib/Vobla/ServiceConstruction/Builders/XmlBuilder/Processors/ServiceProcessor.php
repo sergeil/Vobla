@@ -34,7 +34,8 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Definition\References\TagReference,
     Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
     Vobla\ServiceConstruction\Definition\References\TypeReference,
-    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference;
+    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference,
+    Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -71,7 +72,8 @@ class ServiceProcessor implements Processor
         $xmlEl = new \SimpleXMLElement($xmlBody, 0, false, XsdNamespaces::CONTEXT);
 
         foreach ($xmlEl->children() as $childXml) {
-            if ($childXml->getName() == 'service') {
+            $elName = $childXml->getName();
+            if ($elName == 'service') {
                 /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $def */
                 list($id, $def) = $this->parseServiceTag($childXml);
                 if (!$id) {
@@ -79,6 +81,13 @@ class ServiceProcessor implements Processor
                     $id = $xmlBuilder->getServiceIdGenerator()->generate($reflClass, $id, $def);
                 }
                 $container->addServiceDefinition($id, $def);
+            } else if ($elName == 'config') {
+                $cf = $container->getConfigHolder();
+                
+                $configs = $this->parseConfigTag($childXml);
+                foreach ($configs as $name=>$value) {
+                    $cf->set($name, $value);
+                }
             }
         }
     }
@@ -240,7 +249,7 @@ class ServiceProcessor implements Processor
         return $tags;
     }
 
-    public function parseArray(\SimpleXMLElement $arrayXml)
+    public function parseArray(\SimpleXMLElement $arrayXml, array $enabledSubElements = array('ref', 'service', 'el'))
     {
         if ($arrayXml->getName() != 'array') {
             throw Exception('Root element name must be "array".');
@@ -252,12 +261,12 @@ class ServiceProcessor implements Processor
                 continue; // TODO add an extension point here
             }
 
-            $result = array_merge($result, $this->parseArrayEl($elXml));
+            $result = array_merge($result, $this->parseArrayEl($elXml, $enabledSubElements));
         }
         return $result;
     }
 
-    public function parseArrayEl(\SimpleXMLElement $elXml)
+    public function parseArrayEl(\SimpleXMLElement $elXml, array $enabledSubElements = array('ref', 'service', 'el'))
     {
         $elAttrsXml = $elXml->attributes();
         $result = array();
@@ -270,6 +279,10 @@ class ServiceProcessor implements Processor
             $value = array();
             foreach ($elXml->children() as $childElXml) {
                 $elName = (string)$childElXml->getName();
+                if (!in_array($elName, $enabledSubElements)) {
+                    continue;
+                }
+
                 /*
                  * array_merge's here act as index implicit index incrementers
                  */
@@ -286,7 +299,7 @@ class ServiceProcessor implements Processor
                 } else if ($elName == 'el') {
                     $value = array_merge(
                         $value,
-                        $this->parseArrayEl($childElXml)
+                        $this->parseArrayEl($childElXml, $enabledSubElements)
                     );
                 }
             }
@@ -428,6 +441,8 @@ class ServiceProcessor implements Processor
             return $this->parseServicePropertiesPropertyChildServiceTag($childXml);
         } else if ($elName == 'ref') {
             return $this->parseServicePropertiesPropertyChildRefTag($childXml);
+        } else if ($elName == 'conf-ref') {
+            return $this->parseServicePropertiesPropertyChildConfRefTag($childXml);
         } else {
             // TODO add extension point
         }
@@ -447,6 +462,50 @@ class ServiceProcessor implements Processor
     public function parseServicePropertiesPropertyChildRefTag(\SimpleXMLElement $refXml)
     {
         return $this->parseRef($refXml);
+    }
+
+    public function parseServicePropertiesPropertyChildConfRefTag(\SimpleXMLElement $confRefXml)
+    {
+        $isOptional = true;
+        if (isset($confRefXml['is-optional']) && (string)$confRefXml['is-optional'] == 'false') {
+            $isOptional = false;
+        }
+        
+        return new ConfigPropertyReference((string)$confRefXml['name'], $isOptional);
+    }
+
+    public function parseConfigTag(\SimpleXMLElement $configXml)
+    {
+        $values = array();
+        foreach ($configXml->children() as $propertyXml) {
+            $propertyXmlAttrs = $propertyXml->attributes();
+            if (!isset($propertyXmlAttrs['name'])) {
+                throw new Exception('config/property[name] is required.');
+            }
+
+            $values[(string)$propertyXmlAttrs['name']] = $this->parseConfigPropertyTag($propertyXml);
+        }
+
+        return $values;
+    }
+
+    public function parseConfigPropertyTag(\SimpleXMLElement $propertyXml)
+    {
+        $propertyXmlAttrs = $propertyXml->attributes();
+
+        $value = null;
+        if (isset($propertyXmlAttrs['value'])) {
+            return (string)$propertyXmlAttrs['value'];
+        } else if ($propertyXml->count() == 1) { // array
+            $propertyChildrenXml = $propertyXml->children();
+            if ($propertyChildrenXml[0]->getName() != 'array') {
+                throw new Exception("config/property body may contain only one inner tag and it has to be <array>.");
+            }
+
+            return $this->parseArray($propertyChildrenXml[0], array());
+        } else {
+            return (string)$propertyXml;
+        }
     }
 
     protected function castServicePropertiesPropertyTagValue($value, $type)

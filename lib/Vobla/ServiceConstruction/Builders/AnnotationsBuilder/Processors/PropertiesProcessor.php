@@ -41,7 +41,7 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class PropertiesProcessor extends AbstractProcessor
+class PropertiesProcessor extends AbstractPropertiesProcessor
 {
     /**
      * @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver
@@ -68,46 +68,22 @@ class PropertiesProcessor extends AbstractProcessor
         return $this->injectorsOrderResolver;
     }
 
-    public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)
+    protected function handleProperty(AnnotationReader $annotationReader, \ReflectionClass $reflClass, \ReflectionProperty $reflProp, ServiceDefinition $serviceDefinition)
     {
-        $result = $serviceClasses = array();
-        foreach ($reflClass->getProperties() as $reflProp) {
-            $reflDeclaredClass = $reflProp->getDeclaringClass();
-            if (!in_array($reflDeclaredClass->getName(), $serviceClasses)) {
-                $serviceAnnotation = $annotationReader->getClassAnnotation($reflDeclaredClass, Service::clazz());
-                if ($serviceAnnotation) {
-                    $serviceClasses[] = $reflDeclaredClass->getName();
-                }
-            }
+        /* @var Annotations\Autowired $autowiredAnnotation */
+        $awAnn = $annotationReader->getPropertyAnnotation($reflProp, Autowired::clazz());
+        $awSetAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredSet::clazz());
+        $awMapAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredMap::clazz());
 
-            // if a declared class doesn't have Service annotation skipping its properties
-            if (!in_array($reflDeclaredClass->getName(), $serviceClasses)) {
-                continue;
-            }
-
-            /* @var Annotations\Autowired $autowiredAnnotation */
-            $awAnn = $annotationReader->getPropertyAnnotation($reflProp, Autowired::clazz());
-            $awSetAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredSet::clazz());
-            $awMapAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredMap::clazz());
-
-            if (!$awAnn && !$awSetAnn && !$awMapAnn) {
-                continue;
-            }
-
-            $refDef = array();
-            if ($awAnn) {
-                $refDef = $this->handleAutowired($serviceDefinition, $reflProp, $awAnn);
-            } else if ($awSetAnn) {
-                $refDef = $this->handleAutowiredSet($serviceDefinition, $reflProp, $awSetAnn);
-            } else if ($awMapAnn) {
-                $refDef = $this->handleAutowiredMap($serviceDefinition, $reflProp, $awMapAnn);
-            }
-            $result[$reflProp->getName()] = $refDef;
+        if ($awAnn) {
+            return $this->handleAutowired($serviceDefinition, $reflProp, $awAnn);
+        } else if ($awSetAnn) {
+            return $this->handleAutowiredSet($serviceDefinition, $reflProp, $awSetAnn);
+        } else if ($awMapAnn) {
+            return $this->handleAutowiredMap($serviceDefinition, $reflProp, $awMapAnn);
         }
-
-        $serviceDefinition->setArguments($result);
     }
-
+    
     protected function handleAutowired(ServiceDefinition $serviceDefinition, \ReflectionProperty $reflProp, Autowired $awAnn)
     {
         /* @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $ior */

@@ -134,7 +134,7 @@ class AnnotationsBuilder extends AbstractBuilder
         }
 
         $definition = new ServiceDefinition();
-        
+
         foreach ($this->getProcessors() as $processor) {
             try {
                 $processor->handle($this->getAnnotationReader(), $reflClass, $definition);

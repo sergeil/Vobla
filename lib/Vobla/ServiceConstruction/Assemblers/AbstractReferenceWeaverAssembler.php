@@ -35,7 +35,8 @@ use Vobla\Exception,
     Vobla\ServiceConstruction\Definition\References\OptionalReference,
     Vobla\ServiceNotFoundException,
     Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
-    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference;
+    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference,
+    Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -184,6 +185,18 @@ abstract class AbstractReferenceWeaverAssembler implements Assembler
             $param->isOptional(),
             function($typeName) use($serviceLocator){ return TypeServiceLocator::createCriteria($typeName); }
         );
+    }
+
+    protected function dereferenceConfigPropertyReferenceParameter(ConfigPropertyReference $param)
+    {
+        $ch = $this->getContainer()->getConfigHolder();
+        if ($ch->has($param->getName()) && !$param->isOptional()) {
+            throw new Exception(
+                sprintf('Unable to find a "%s" config-property.', $param->getName())
+            );
+        }
+
+        return $ch->get($param->getName());
     }
 
     protected function getCollectionStereotype($providedStereotype)

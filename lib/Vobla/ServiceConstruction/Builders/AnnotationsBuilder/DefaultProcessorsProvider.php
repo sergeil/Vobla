@@ -29,10 +29,10 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\GeneralAttr
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\PropertiesProcessor,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TagsProcessor,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\QualifierProcessor,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TypeProcessor;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TypeProcessor,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\ConfigProcessor;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class DefaultProcessorsProvider implements ProcessorsProvider
@@ -44,13 +44,20 @@ class DefaultProcessorsProvider implements ProcessorsProvider
 
     public function __construct()
     {
+        // Be aware that order of processors is highly important.
+        // For example, if ConfigProcessor is positioned before
+        // PropertiesProcessor then if there's a ConfigProperty
+        // annotation for a property and it was initialized then
+        // other Autowired annotations from PropertiesProcessor
+        // will be ignore and vice versa
         $this->processors = array(
             new GeneralAttributesProcessor(),
             new ConstructorProcessor(),
             new PropertiesProcessor(),
             new QualifierProcessor(),
             new TagsProcessor(),
-            new TypeProcessor()
+            new TypeProcessor(),
+            new ConfigProcessor()
         );
     }
 

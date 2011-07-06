@@ -2,6 +2,10 @@
          xmlns="http://vobla-project.org/xsd/context">
     <import resource="b.xml" />
 
+    <config>
+        <property name="memcacheServerUrl" value="some-foo-memcache-url" />
+    </config>
+
     <service id="rootService" class-name="RootService" factory-method="__construct" scope="prototype">
         <constructor>
             <arg>

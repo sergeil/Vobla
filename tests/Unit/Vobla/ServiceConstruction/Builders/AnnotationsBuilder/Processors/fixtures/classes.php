@@ -304,3 +304,32 @@ class ClassWithoutNotByTypeWiringCandidate
         return get_called_class();
     }
 }
+
+// ----
+
+/**
+ * @Vobla\Service
+ */
+class ClassWithSomeConfig
+{
+    /**
+     * @Vobla\ConfigProperty(name="fooProp")
+     */
+    protected $fooField;
+
+    /**
+     * @Vobla\ConfigProperty(name="barProp", isOptional=false)
+     */
+    protected $barField;
+
+    protected $bazField;
+
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
+}
+
