@@ -585,6 +585,34 @@ XML;
         $this->assertFalse($fooProp2Result->isOptional());
     }
 
+    public function testParseServicePropertiesPropertyChildServiceTag()
+    {
+        $xml = <<<XML
+<context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://vobla-project.org/xsd/context"
+		 xmlns:foo="fooNs">
+
+        <service />
+</context>
+XML;
+
+        $xmlEl = new \SimpleXMLElement($xml, 0, false, 'http://vobla-project.org/xsd/context');
+        list($serviceXml) = $xmlEl->children();
+
+        /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\ServiceProcessor $sp */
+        $sp = $this->mf->createTestCaseAware(ServiceProcessor::clazz())
+        ->addDelegateMethod('parseServicePropertiesPropertyChildServiceTag', 1)
+        ->addMethod('parseServiceTag', function() {
+                
+            return array('id', 'service-def');
+        }, 1)
+        ->createMock();
+
+        $result = $sp->parseServicePropertiesPropertyChildServiceTag($serviceXml);
+        $this->assertEquals('service-def', $result);
+        
+    }
+
     public function testParseServicePropertiesTag()
     {
         $xml = <<<XML

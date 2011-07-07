@@ -76,9 +76,18 @@ class InjectorsOrderResolver
 
     final public function getPriorityPolicy() // TODO make extensible
     {
-        return array(
+        return array_merge(array(
             'qualifier', 'tag', 'type', 'id'
-        );
+        ));
+    }
+
+    /**
+     * Override this method if you need to a dd your custom types to be
+     * resolved.
+     */
+    public function getAdditionalPriorityPolicy()
+    {
+        return array();
     }
 
     /**
