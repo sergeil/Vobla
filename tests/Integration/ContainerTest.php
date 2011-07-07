@@ -124,9 +124,12 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
             "RootService::cacheDrivers property wasn't initialized as array"
         );
         $this->assertEquals(3, sizeof($cacheMap->cacheDrivers));
+
+        $cacheDriverIds = array_keys($cacheMap->cacheDrivers);
+        sort($cacheDriverIds);
         $this->assertEquals(
             array('apcCacheDriver', 'arrayCacheDriver', 'memcacheCacheDriver'),
-            array_keys($cacheMap->cacheDrivers)
+            $cacheDriverIds
         );
         $this->assertType('ApcDriver', $cacheMap->cacheDrivers['apcCacheDriver']);
         $this->assertType('ArrayDriver', $cacheMap->cacheDrivers['arrayCacheDriver']);
@@ -136,7 +139,9 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue(is_array($rootService1->controllers));
         $this->assertEquals(2, sizeof($rootService1->controllers));
-        $this->assertEquals(array('dashboardController', 'settingsController'), array_keys($rootService1->controllers));
+        $controllerIds = array_keys($rootService1->controllers);
+        sort($controllerIds);
+        $this->assertEquals(array('dashboardController', 'settingsController'), $controllerIds);
         $this->assertType(\DashboardController::clazz(),$rootService1->controllers['dashboardController']);
         $this->assertType(\SettingsController::clazz(),$rootService1->controllers['settingsController']);
     }
