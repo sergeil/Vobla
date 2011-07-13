@@ -27,6 +27,8 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
  
 /**
+ * Should be placed on a class.
+ *
  * This annotation will prove useful when you need to annotate a class with {@class Service}
  * annotation but at the same time you don't want it to be a candidate for by-type autowiring.
  *

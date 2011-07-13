@@ -27,6 +27,8 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
+ * Should be placed on a class.
+ *
  * If class has this annotation the container will treat it as a service.
  *
  * @Annotation

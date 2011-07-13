@@ -34,6 +34,8 @@ use Doctrine\Common\Annotations\Annotation;
  */ 
 class Parameter extends Annotation
 {
+    // TODO add support for tags, types referencing
+
     public $name;
 
     public $qualifier;

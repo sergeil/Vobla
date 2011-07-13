@@ -27,6 +27,12 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
+ * Should be placed on class properties.
+ *
+ * Referenced services ( 0-* cardinality ) will be injected in a map structure ( an associative
+ * array speaking with PHP terms ), where KEY is going to be an ID of a service
+ * and values is the service itself.
+ *
  * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
@@ -36,6 +42,12 @@ class AutowiredMap extends Annotation
 
     public $tags = array();
 
+    /**
+     * An exception will be thrown if a referenced service cannot
+     * be resolved.
+     *
+     * @var bool
+     */
     public $isOptional;
 
     /**

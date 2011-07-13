@@ -27,6 +27,11 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
+ * Should be placed on class properties.
+ *
+ * You may use this annotation when you want to have
+ * service' property to be dereferenced by qualifier.
+ *
  * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */

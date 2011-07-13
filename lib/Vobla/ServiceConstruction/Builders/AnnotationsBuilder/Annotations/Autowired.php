@@ -27,7 +27,10 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
- * Declares a reference to another service.
+ * Should be placed on class properties.
+ *
+ * Declares a reference to another service, in other words this annotation
+ * allows you to establish an aggregation/composition relation between services.
  *
  * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -42,6 +45,12 @@ class Autowired extends Annotation
 
     public $tag;
 
+    /**
+     * An exception will be thrown if a referenced service cannot
+     * be resolved.
+     *
+     * @var bool
+     */
     public $isOptional = false;
 
     static public function clazz()

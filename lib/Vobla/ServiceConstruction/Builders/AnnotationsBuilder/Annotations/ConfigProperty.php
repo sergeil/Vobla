@@ -27,6 +27,11 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
+ * Should be placed on class properties.
+ *
+ * This annotation allows you to reference a configuration
+ * property that was declared in container.
+ *
  * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 

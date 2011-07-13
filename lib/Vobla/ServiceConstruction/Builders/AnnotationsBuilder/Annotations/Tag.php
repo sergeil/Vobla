@@ -27,6 +27,11 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
+ * Should be placed on a class.
+ *
+ * Allows you to tag a service. Multiple tags might be assigned to a class,
+ * tags from parent classes will be taken into account too.
+ *
  * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 

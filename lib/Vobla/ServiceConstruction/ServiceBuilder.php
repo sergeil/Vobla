@@ -29,7 +29,6 @@ use Vobla\ServiceConstruction\Assemblers\AssemblersManager,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class ServiceBuilder

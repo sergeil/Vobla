@@ -27,6 +27,11 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
+ * Should be placed on class properties.
+ *
+ * Referenced services ( 0-* cardinality ) will be injected in a Set ( there
+ * might not be multiple identical services ).
+ *
  * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 

@@ -27,6 +27,8 @@ namespace Vobla\Context\ScopeHandlers;
 use Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
+ * Whenever a service with prototype scope should be dispensed from
+ * the container its cloned version will be used instead.
  *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 

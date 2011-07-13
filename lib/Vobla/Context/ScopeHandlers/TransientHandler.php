@@ -27,7 +27,7 @@ namespace Vobla\Context\ScopeHandlers;
 use Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
- *
+ * TODO
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class TransientHandler extends AbstractHandler

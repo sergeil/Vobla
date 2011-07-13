@@ -27,7 +27,6 @@ namespace Vobla\ServiceConstruction;
 use Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class DefinitionsHolder 

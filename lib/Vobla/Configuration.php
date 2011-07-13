@@ -30,7 +30,10 @@ use Vobla\ServiceConstruction\Assemblers\AssemblersProvider,
     Vobla\ServiceLocating\DefaultServiceLocatorsProvider;
 
 /**
- * 
+ * The most important extension point of the container, you are
+ * able to pass your manually configured instance of configuration
+ * when an instance of {@class Container} is created.
+ *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class Configuration

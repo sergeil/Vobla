@@ -28,7 +28,8 @@ use Vobla\Context\ContextScopeHandler,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
- *
+ * Emulates "container-scope" singleton.
+ * 
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class SingletonHandler extends AbstractHandler

@@ -27,6 +27,8 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations;
 use Doctrine\Common\Annotations\Annotation;
 
 /**
+ * Should be placed on method declaration.
+ *
  * This annotation is used to designate a factory-method of a service.
  *
  * @Annotation

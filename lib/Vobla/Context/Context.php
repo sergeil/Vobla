@@ -28,6 +28,9 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
+ * Implementation of this interface are responsible for
+ * holding and dispensing instances of already assembled and
+ * initialized services.
  *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
