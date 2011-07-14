@@ -25,11 +25,12 @@
 namespace Vobla;
 
 /**
- * All Vobla related exceptions must generalize this one.
+ * This exception must be thrown when it was not possible to initialize
+ * some required functionality while bootstrapping/working with the container.
  *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class Exception extends \Exception
+class InitializationException extends Exception
 {
     
 }

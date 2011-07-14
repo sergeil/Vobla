@@ -166,7 +166,7 @@ class ReferencesWeaverAssemblerTest extends \PHPUnit_Framework_TestCase
 
             return 'qlrPropertyService';
         }, 1)
-        ->addMethod('getServiceLocator', $serviceLocator, 0)
+        ->addMethod('getServiceLocator', $serviceLocator)
         ->createMock();
         
         $rwa = new ReferencesWeaverAssembler($ri);

@@ -26,7 +26,7 @@ if (!defined('VOBLA_TESTING')) {
     set_include_path(implode(PATH_SEPARATOR, array(
         realpath(__DIR__.'/../lib/'),
         realpath(__DIR__.'/../lib/vendor/Doctrine/lib/'),
-        realpath(__DIR__.'/../lib/vendor/Moko/src/'),
+        realpath(__DIR__.'/../lib/vendor/Moko/lib/'),
         get_include_path()
     )));
 
