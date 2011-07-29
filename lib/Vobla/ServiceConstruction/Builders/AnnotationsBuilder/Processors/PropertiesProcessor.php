@@ -76,83 +76,11 @@ class PropertiesProcessor extends AbstractPropertiesProcessor
         $awMapAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredMap::clazz());
 
         if ($awAnn) {
-            return $this->handleAutowired($serviceDefinition, $reflProp, $awAnn);
+            return $this->dereferenceAutowiredAnnotation($serviceDefinition, $awAnn, $reflProp->getName());
         } else if ($awSetAnn) {
-            return $this->handleAutowiredSet($serviceDefinition, $reflProp, $awSetAnn);
+            return $this->dereferenceAutowiredSetAnnotation($serviceDefinition, $awSetAnn);
         } else if ($awMapAnn) {
-            return $this->handleAutowiredMap($serviceDefinition, $reflProp, $awMapAnn);
+            return $this->dereferenceAutowiredMapAnnotation($serviceDefinition, $awMapAnn);
         }
-    }
-    
-    protected function handleAutowired(ServiceDefinition $serviceDefinition, \ReflectionProperty $reflProp, Autowired $awAnn)
-    {
-        /* @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $ior */
-        $ior = clone $this->getInjectorsOrderResolver();
-        $ior->setByIdCallback(function() use($reflProp, $awAnn) {
-            $refServiceId = $awAnn->id === null ? $reflProp->getName() : $awAnn->id;
-            return new IdReference($refServiceId, $awAnn->isOptional);
-        });
-        $ior->setByQualifierCallback(function() use($awAnn) {
-            if ($awAnn->qualifier) {
-                return new QualifiedReference($awAnn->qualifier, $awAnn->isOptional);
-            }
-        });
-        $ior->setByTagCallback(function() use($awAnn) {
-            if ($awAnn->tag) {
-                return new TagReference($awAnn->tag, $awAnn->isOptional);
-            }
-        });
-        $ior->setByTypeCallback(function() use($awAnn, $serviceDefinition) {
-            if ($awAnn->type) {
-                /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $serviceDefinition */
-                $notByTypeWiringCandidate = $serviceDefinition->getMetaEntry('notByTypeWiringCandidate');
-                // proceeding only if this class was not marked as a non-candidate
-                // for by-type autowiring
-                if ($notByTypeWiringCandidate === null) {
-                    return new TypeReference($awAnn->type, $awAnn->isOptional);
-                }
-            }
-        });
-
-        return $ior->resolve();
-    }
-
-    protected function handleAutowiredSet(ServiceDefinition $serviceDefinition, \ReflectionProperty $reflProp, AutowiredSet $awSetAnn)
-    {
-        return $this->createInjectorsOrderResolverForCollection($serviceDefinition, $awSetAnn, 'set')->resolve();
-    }
-
-    protected function handleAutowiredMap(ServiceDefinition $serviceDefinition, \ReflectionProperty $reflProp, AutowiredMap $awMapAnn)
-    {
-        return $this->createInjectorsOrderResolverForCollection($serviceDefinition, $awMapAnn, 'map')->resolve();
-    }
-
-    /**
-     * @param mixed $annotation
-     * @param string $type  set or map
-     * @return \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver
-     */
-    private function createInjectorsOrderResolverForCollection(ServiceDefinition $serviceDefinition, $annotation, $type)
-    {
-        /* @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $ior */
-        $ior = clone $this->getInjectorsOrderResolver();
-        $ior->setByTagCallback(function() use($annotation, $type) {
-            if ($annotation->tags) {
-                return new TagsCollectionReference($annotation->tags, $type, $annotation->isOptional);
-            }
-        });
-        $ior->setByTypeCallback(function() use($annotation, $type, $serviceDefinition) {
-            if ($annotation->type) {
-                /* @var \Vobla\ServiceConstruction\Definition\ServiceDefinition $serviceDefinition */
-                $notByTypeWiringCandidate = $serviceDefinition->getMetaEntry('notByTypeWiringCandidate');
-                // proceeding only if this class was not marked as a non-candidate
-                // for by-type autowiring
-                if ($notByTypeWiringCandidate === null) {
-                    return new TypeCollectionReference($annotation->type, $type, $annotation->isOptional);
-                }
-            }
-        });
-
-        return $ior;
     }
 }

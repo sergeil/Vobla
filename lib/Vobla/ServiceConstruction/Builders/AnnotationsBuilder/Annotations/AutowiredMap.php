@@ -31,7 +31,7 @@ use Doctrine\Common\Annotations\Annotation;
  *
  * Referenced services ( 0-* cardinality ) will be injected in a map structure ( an associative
  * array speaking with PHP terms ), where KEY is going to be an ID of a service
- * and values is the service itself.
+ * and value is the service itself.
  *
  * @Annotation
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>

@@ -27,12 +27,13 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
-    Doctrine\Common\Annotations\AnnotationReader;
+    Doctrine\Common\Annotations\AnnotationReader,
+    Vobla\Exception;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-abstract class AbstractPropertiesProcessor extends AbstractProcessor
+abstract class AbstractPropertiesProcessor extends AbstractDereferencingProcessor //extends AbstractProcessor
 {
     /**
      * {@inheritdoc}
@@ -55,7 +56,17 @@ abstract class AbstractPropertiesProcessor extends AbstractProcessor
                 continue;
             }
 
-            $refDef = $this->handleProperty($annotationReader, $reflClass, $reflProp, $serviceDefinition);
+            $refDef = null;
+            try {
+                $refDef = $this->handleProperty($annotationReader, $reflClass, $reflProp, $serviceDefinition);
+            } catch (\Exception $e) {
+                $msg = sprintf(
+                    'Unable to handle some annotation of property %s::%s',
+                    $reflClass->getName(), $reflProp->getName()
+                );
+                throw new Exception($msg);
+            }
+
             if ($refDef !== null && !isset($currentServiceArgs[$reflProp->getName()])) {
                 $result[$reflProp->getName()] = $refDef;
             }
