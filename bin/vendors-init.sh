@@ -3,11 +3,20 @@
 cd ../
 git submodule update --init
 
+echo "-- Doctrine Commons(3.x):"
 cd lib/vendor/Doctrine
 git checkout 3.0.x
 git pull
 
+echo
+echo "-- Moko"
 cd ../Moko
+git checkout master
+git pull
+
+echo
+echo "-- Logade"
+cd ../Logade
 git checkout master
 git pull
 

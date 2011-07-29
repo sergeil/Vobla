@@ -36,7 +36,6 @@ use Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase

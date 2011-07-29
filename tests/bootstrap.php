@@ -27,6 +27,7 @@ if (!defined('VOBLA_TESTING')) {
         realpath(__DIR__.'/../lib/'),
         realpath(__DIR__.'/../lib/vendor/Doctrine/lib/'),
         realpath(__DIR__.'/../lib/vendor/Moko/lib/'),
+        realpath(__DIR__.'/../lib/vendor/Logade/lib/'),
         get_include_path()
     )));
 

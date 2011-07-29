@@ -4,3 +4,6 @@
 [submodule "src/vendor/Moko"]
 	path = lib/vendor/Moko
 	url = git://github.com/sergeil/Moko.git
+[submodule "lib/vendor/Logade"]
+	path = lib/vendor/Logade
+	url = git://github.com/sergeil/Logade.git
