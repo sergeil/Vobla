@@ -77,6 +77,7 @@ class ConstructorProcessor extends AbstractDereferencingProcessor //implements P
     }
 
     /**
+     * @throws \Vobla\Exception
      * Override this method if you want to introduce some more annotations
      *
      * @param array $constructorParams
@@ -90,10 +91,18 @@ class ConstructorProcessor extends AbstractDereferencingProcessor //implements P
         }
 
         /* @var Annotations\Parameter $param */
+        $paramNum = 0;
         foreach ($constructorParams as $param) {
             if ($param->name == null) {
                 throw new Exception(
                     "Parameter 'name' is required."
+                );
+            } else if (!array_key_exists($param->name, $dereferencedParams)) {
+                throw new Exception(
+                    sprintf(
+                        'Parameter no. %s points to non-existing constructor method parameter with name "%s", a typo ?',
+                        $paramNum, $param->name
+                    )
                 );
             }
 
@@ -106,6 +115,8 @@ class ConstructorProcessor extends AbstractDereferencingProcessor //implements P
                 );
                 throw new Exception($msg, null, $e);
             }
+
+            $paramNum++;
         }
 
         foreach ($dereferencedParams as $paramName=>$value) {

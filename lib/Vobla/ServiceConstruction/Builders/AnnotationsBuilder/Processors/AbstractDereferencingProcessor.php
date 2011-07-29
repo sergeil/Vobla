@@ -35,7 +35,9 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
     Vobla\ServiceConstruction\Definition\References\QualifiedReference,
     Vobla\ServiceConstruction\Definition\References\TagReference,
     Vobla\ServiceConstruction\Definition\References\TypeReference,
-    Vobla\ServiceConstruction\Builders\InjectorsOrderResolver;
+    Vobla\ServiceConstruction\Builders\InjectorsOrderResolver,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\ConfigProperty,
+    Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -153,6 +155,11 @@ abstract class AbstractDereferencingProcessor extends AbstractProcessor
         });
 
         return $ior;
+    }
+
+    protected function dereferenceConfigPropertyAnnotation(ServiceDefinition $serviceDefinition, ConfigProperty $cpAnn)
+    {
+        return new ConfigPropertyReference($cpAnn->name, $cpAnn->isOptional);
     }
 
     protected function resolveAnnotationHandlerMethodName($annotation)

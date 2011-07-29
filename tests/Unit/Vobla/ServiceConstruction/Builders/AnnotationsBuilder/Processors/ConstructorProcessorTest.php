@@ -36,7 +36,9 @@ use Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter,
     Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredSet,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\ConfigProperty,
+    Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -89,7 +91,7 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
             $this->cp->handle($this->ar, $reflClass, $def);
         } catch (\Exception $e) {
             \Vobla\Tools\Toolkit::printException($e);
-            echo "\n\n\n";
+            echo "\n\n";
         }
 
         $this->assertEquals(
@@ -103,7 +105,7 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
 
         $args = $def->getConstructorArguments();
         $this->assertEquals(
-            4,
+            5,
             sizeof($args),
             sprintf(
                 "%s::fooFactory's %s annotation defines three parameters but since the method signature has 4 parameters, one of them should be deduced from method's signature",
@@ -146,19 +148,28 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
             IdReference::clazz(),
             $param3,
             sprintf(
-//                "Whenever there's ID is specified for %s an instance of %s must be created.",
                 "Whenever %s::as is type of %s of width ID provided, %s must be created.",
                 Parameter::clazz(), Autowired::clazz(), IdReference::clazz()
             )
         );
 
-        $param3 = $args[3];
+        $param4 = $args[3];
         $this->assertType(
             TagsCollectionReference::clazz(),
-            $param3,
+            $param4,
+            sprintf(
+                "If the %s::as is type of %s and 'tags' property != null then instance of %s must be created.",
+                Parameter::clazz(), AutowiredSet::clazz(), TagsCollectionReference::clazz()
+            )
+        );
+
+        $param5 = $args[4];
+        $this->assertType(
+            ConfigPropertyReference::clazz(),
+            $param5,
             sprintf(
                 "If the %s::as is type of %s then instance of %s must be created.",
-                Parameter::clazz(), AutowiredSet::clazz(), TagsCollectionReference::clazz()
+                Parameter::clazz(), ConfigProperty::clazz(), ConfigPropertyReference::clazz()
             )
         );
     }

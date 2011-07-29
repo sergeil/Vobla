@@ -33,7 +33,7 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-abstract class AbstractPropertiesProcessor extends AbstractDereferencingProcessor //extends AbstractProcessor
+abstract class AbstractPropertiesProcessor extends AbstractDereferencingProcessor
 {
     /**
      * {@inheritdoc}

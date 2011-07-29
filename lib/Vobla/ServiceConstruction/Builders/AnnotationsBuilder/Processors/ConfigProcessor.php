@@ -32,6 +32,9 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference;
 
 /**
+ * @deprecated
+ * @todo delete, update DAOs and tests
+ *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class ConfigProcessor extends AbstractPropertiesProcessor

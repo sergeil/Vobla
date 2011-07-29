@@ -37,10 +37,11 @@ class ClassWithLocalFactoryMethod
      *         @Vobla\Parameter(name="aService", as=@Vobla\Autowired(qualifier="fooQfr")),
      *         @Vobla\Parameter(name="cService", as=@Vobla\Autowired(id="megaCService")),
      *         @Vobla\Parameter(name="dService", as=@Vobla\AutowiredSet(tags={"fooTag"})),
+     *         @Vobla\Parameter(name="eConfig", as=@Vobla\ConfigProperty("eConfigProperty")),
      *     }
      * )
      */
-    public function fooFactory($aService, $bService, $cService, $dService)
+    public function fooFactory($aService, $bService, $cService, $dService, $eConfig)
     {
         
     }
