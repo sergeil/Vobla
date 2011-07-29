@@ -29,13 +29,14 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Definition\References\IdReference,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor,
     Vobla\ServiceConstruction\Definition\References\QualifiedReference,
-    Vobla\Exception;
+    Vobla\Exception,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter,
+    Logade\LoggerFactory;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class ConstructorProcessor implements Processor
+class ConstructorProcessor extends AbstractDereferencingProcessor //implements Processor
 {
     public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)
     {
@@ -53,15 +54,15 @@ class ConstructorProcessor implements Processor
             $isConstructorFound = true;
             $serviceDefinition->setFactoryMethod($reflMethod->getName());
             $serviceDefinition->setConstructorArguments(
-                $this->dereferenceConstructorParams($reflMethod, $constructorAnnotation->params)
+                $this->dereferenceConstructorParams($serviceDefinition, $reflMethod, $constructorAnnotation->params)
             );
         }
     }
 
-    protected function dereferenceConstructorParams(\ReflectionMethod $reflMethod, array $constructorParams)
+    protected function dereferenceConstructorParams(ServiceDefinition $serviceDefinition, \ReflectionMethod $reflMethod, array $constructorParams)
     {
         try {
-            return $this->doDereferenceConstructorParams($reflMethod, $constructorParams);
+            return $this->doDereferenceConstructorParams($serviceDefinition, $reflMethod, $constructorParams);
         } catch (\Exception $e) {
             throw new Exception(
                 sprintf(
@@ -81,7 +82,7 @@ class ConstructorProcessor implements Processor
      * @param array $constructorParams
      * @return array
      */
-    protected function doDereferenceConstructorParams(\ReflectionMethod $reflMethod, array $constructorParams)
+    protected function doDereferenceConstructorParams(ServiceDefinition $serviceDefinition, \ReflectionMethod $reflMethod, array $constructorParams)
     {
         $dereferencedParams = array();
         foreach ($reflMethod->getParameters() as $reflParam) {
@@ -95,7 +96,16 @@ class ConstructorProcessor implements Processor
                     "Parameter 'name' is required."
                 );
             }
-            $dereferencedParams[$param->name] = $this->dereferenceConstructorParam($param);
+
+            try {
+                $dereferencedParams[$param->name] = $this->dereferenceConstructorParam($serviceDefinition, $param);
+            } catch (\Exception $e) {
+                $msg = sprintf(
+                    'Unable to process parameter with name "%s"',
+                    $param->name
+                );
+                throw new Exception($msg, null, $e);
+            }
         }
 
         foreach ($dereferencedParams as $paramName=>$value) {
@@ -107,14 +117,24 @@ class ConstructorProcessor implements Processor
         return array_values($dereferencedParams);
     }
 
-    protected function dereferenceConstructorParam($param) // TODO make this method as final
+    protected function dereferenceConstructorParam(ServiceDefinition $serviceDefinition, $param) // TODO make this method as final
     {
-        if ($param->qualifier != null) {
-            return new QualifiedReference($param->qualifier);
-        } else if ($param->id != null) {
-            return new IdReference($param->id);
+        $as = $param->as;
+        if (!$as) {
+            throw new Exception('"as" parameter was not provided!');
+        }
+
+        $handlerName = $this->resolveAnnotationHandlerMethodName($as);
+        if (in_array($handlerName, get_class_methods($this))) {
+            return $this->$handlerName($serviceDefinition, $as);
         } else {
-            return $this->dereferenceConstructorParam($param);
+            $msg = sprintf(
+                'Unable to find a handler %s::%s method that would be responsible for taking care of annotation "%s" in "%s."',
+                get_class($this), $handlerName, get_class($as), Constructor::clazz()
+            );
+            LoggerFactory::getInstance()->getLogger($this)->warning($msg);
+            
+            // TODO introduce aggregated handlers ?
         }
     }
 }

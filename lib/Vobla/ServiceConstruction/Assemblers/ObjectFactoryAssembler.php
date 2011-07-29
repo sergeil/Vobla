@@ -115,9 +115,9 @@ class ObjectFactoryAssembler extends AbstractReferenceWeaverAssembler
             );
         } catch (\Exception $e) {
             throw new Exception(
-                $e,
+                sprintf('Unable to create an object of type "%s".', $definition->getClassName()),
                 null,
-                sprintf('Unable to create an object of type "%s".', $definition->getClassName())
+                $e
             );
         }
         

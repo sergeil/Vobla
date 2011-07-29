@@ -34,14 +34,15 @@ class ClassWithLocalFactoryMethod
     /**
      * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor(
      *     params={
-     *         @Vobla\Parameter(name="aService", qualifier="fooQfr"),
-     *         @Vobla\Parameter(name="cService", id="megaCService")
+     *         @Vobla\Parameter(name="aService", as=@Vobla\Autowired(qualifier="fooQfr")),
+     *         @Vobla\Parameter(name="cService", as=@Vobla\Autowired(id="megaCService")),
+     *         @Vobla\Parameter(name="dService", as=@Vobla\AutowiredSet(tags={"fooTag"})),
      *     }
      * )
      */
-    public function fooFactory($aService, $bService, $cService)
+    public function fooFactory($aService, $bService, $cService, $dService)
     {
-
+        
     }
 
     static public function clazz()

@@ -27,7 +27,7 @@ class RootService
     /**
      * @Vobla\Constructor(
      *     params={
-     *         @Vobla\Parameter(name="loggerFactory", qualifier="loggingFacility")
+     *         @Vobla\Parameter(name="loggerFactory", as=@Vobla\Autowired(qualifier="loggingFacility"))
      *     }
      * )
      */

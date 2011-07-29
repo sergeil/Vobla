@@ -33,7 +33,10 @@ use Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor,
     Vobla\ServiceConstruction\Definition\References\QualifiedReference,
     Vobla\ServiceConstruction\Definition\References\IdReference,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter,
+    Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredSet,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -82,7 +85,12 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
     {
         $reflClass = new \ReflectionClass(ClassWithLocalFactoryMethod::clazz());
         $def = new ServiceDefinition();
-        $this->cp->handle($this->ar, $reflClass, $def);
+        try {
+            $this->cp->handle($this->ar, $reflClass, $def);
+        } catch (\Exception $e) {
+            \Vobla\Tools\Toolkit::printException($e);
+            echo "\n\n\n";
+        }
 
         $this->assertEquals(
             'fooFactory',
@@ -95,10 +103,10 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
 
         $args = $def->getConstructorArguments();
         $this->assertEquals(
-            3,
+            4,
             sizeof($args),
             sprintf(
-                "%s::fooFactory's %s annotation defines two parameters but since the method has 3 parameters, third parameter should be deduced from method's signature",
+                "%s::fooFactory's %s annotation defines three parameters but since the method signature has 4 parameters, one of them should be deduced from method's signature",
                 ClassWithLocalFactoryMethod::clazz(), Constructor::clazz()
             )
         );
@@ -108,8 +116,8 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
         $this->assertType(
             QualifiedReference::clazz(), $param1,
             sprintf(
-                "When %s::params array contains a %s with qualifier key != null, an instance of %s must be created",
-                 Constructor::clazz(), Parameter::clazz(), QualifiedReference::clazz()
+                "When %s::as is type of %s , an instance of %s must be created",
+                Parameter::clazz(), QualifiedReference::clazz(), QualifiedReference::clazz()
             )
         );
         $this->assertEquals('fooQfr', $param1->getQualifier());
@@ -138,8 +146,19 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
             IdReference::clazz(),
             $param3,
             sprintf(
-                "Whenever there's ID is specified for %s an instance of %s must be created.",
-                Parameter::clazz(), IdReference::clazz()
+//                "Whenever there's ID is specified for %s an instance of %s must be created.",
+                "Whenever %s::as is type of %s of width ID provided, %s must be created.",
+                Parameter::clazz(), Autowired::clazz(), IdReference::clazz()
+            )
+        );
+
+        $param3 = $args[3];
+        $this->assertType(
+            TagsCollectionReference::clazz(),
+            $param3,
+            sprintf(
+                "If the %s::as is type of %s then instance of %s must be created.",
+                Parameter::clazz(), AutowiredSet::clazz(), TagsCollectionReference::clazz()
             )
         );
     }

@@ -34,13 +34,39 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
     Vobla\ServiceConstruction\Definition\References\IdReference,
     Vobla\ServiceConstruction\Definition\References\QualifiedReference,
     Vobla\ServiceConstruction\Definition\References\TagReference,
-    Vobla\ServiceConstruction\Definition\References\TypeReference;
+    Vobla\ServiceConstruction\Definition\References\TypeReference,
+    Vobla\ServiceConstruction\Builders\InjectorsOrderResolver;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 abstract class AbstractDereferencingProcessor extends AbstractProcessor
 {
+    /**
+    * @var \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver
+    */
+    protected $injectorsOrderResolver;
+
+    /**
+    * @param \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver $injectorsOrderResolver
+    */
+    public function setInjectorsOrderResolver(InjectorsOrderResolver $injectorsOrderResolver)
+    {
+        $this->injectorsOrderResolver = $injectorsOrderResolver;
+    }
+
+    /**
+    * @return \Vobla\ServiceConstruction\Builders\InjectorsOrderResolver
+    */
+    public function getInjectorsOrderResolver()
+    {
+        if (null === $this->injectorsOrderResolver) {
+            $this->injectorsOrderResolver = new InjectorsOrderResolver();
+        }
+
+        return $this->injectorsOrderResolver;
+    }
+
     /**
      * @throws \Vobla\Exception
      * @param \Vobla\ServiceConstruction\Definition\ServiceDefinition $serviceDefinition
@@ -127,5 +153,11 @@ abstract class AbstractDereferencingProcessor extends AbstractProcessor
         });
 
         return $ior;
+    }
+
+    protected function resolveAnnotationHandlerMethodName($annotation)
+    {
+        $exp = explode('\\', get_class($annotation));
+        return 'dereference'.ucfirst(end($exp)).'Annotation';
     }
 }

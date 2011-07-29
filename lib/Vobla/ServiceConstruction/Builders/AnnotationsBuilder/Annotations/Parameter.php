@@ -34,13 +34,16 @@ use Doctrine\Common\Annotations\Annotation;
  */ 
 class Parameter extends Annotation
 {
-    // TODO add support for tags, types referencing
-
+    /**
+     * Name of a constructor parameter where a resolved reference should
+     * be injected to.
+     */
     public $name;
 
-    public $qualifier;
-
-    public $id;
+    /**
+     * It could be {@class Autowired}, {@class AutowiredSet}, {@class AutowiredMap}.
+     */
+    public $as;
 
     /**
      * @return string
