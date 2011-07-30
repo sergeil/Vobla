@@ -29,7 +29,6 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Assemblers\Injection\FieldAccessReferenceInjector;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class DefaultAssemblersProvider implements AssemblersProvider
@@ -46,10 +45,7 @@ class DefaultAssemblersProvider implements AssemblersProvider
             new ReferencesWeaverAssembler(new FieldAccessReferenceInjector())
         );
     }
-
-    /**
-     * @TODO throw an exception if no initialization done yet
-     */
+    
     public function getAssemblers()
     {
         return $this->assemblers;

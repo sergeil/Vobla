@@ -30,7 +30,6 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\Exception;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class ObjectFactoryAssembler extends AbstractReferenceWeaverAssembler
@@ -41,7 +40,7 @@ class ObjectFactoryAssembler extends AbstractReferenceWeaverAssembler
      * @param  string $methodName
      * @return \ReflectionMethod
      */
-    protected function getReflectedFactoryMethod(\ReflectionClass $reflClass, $methodName)
+    protected function getReflectedFactoryMethod(\ReflectionClass $reflClass, $methodName, $shouldBeStatic = false)
     {
         if (!$reflClass->hasMethod($methodName)) {
             throw new Exception(
@@ -49,6 +48,17 @@ class ObjectFactoryAssembler extends AbstractReferenceWeaverAssembler
                     "Class '%s' doesn't have a declared factory-method '%s'.",
                     get_class($reflClass->getName()), $methodName
                 )
+            );
+        }
+
+        $reflMethod = $reflClass->getMethod($methodName);
+        if ($shouldBeStatic && !$reflMethod->isStatic()) {
+            throw new Exception(
+                sprintf('Factory method %s::%s must be static.', $reflClass->getName(), $methodName)
+            );
+        } else if (!$reflMethod->isPublic()) {
+            throw new Exception(
+                sprintf('Factory method %s::%s must be public.', $reflClass->getName(), $methodName)
             );
         }
 
@@ -70,7 +80,8 @@ class ObjectFactoryAssembler extends AbstractReferenceWeaverAssembler
         } else { // static factory-method
             $reflFactoryMethod = $this->getReflectedFactoryMethod(
                 new \ReflectionClass($this->createTargetServiceClassName($definition)),
-                $factoryMethod
+                $factoryMethod,
+                true
             );
             return $reflFactoryMethod->invokeArgs(null, $params);
         }
