@@ -58,7 +58,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         $container = new Container();
         $container->getConfigHolder()->set('memcacheServerUrl', 'some-foo-memcache-url');
 
-        $ab = new AnnotationsBuilder($container);
+        $ab = $container->getBuildersFactory()->createAnnotationsBuilder();
         $skippedFilesWithExceptions = $ab->processPath($container, __DIR__.'/fixtures');
         $skippedClassNames = array();
         foreach ($skippedFilesWithExceptions as $entry) {
@@ -83,7 +83,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
     {
         $container = new Container();
 
-        $xb = new XmlBuilder($container);
+        $xb = $container->getBuildersFactory()->createXmlBuilder();
 
         foreach ($xb->getProcessors() as $p) {
             if ($p instanceof ImportProcessor) {

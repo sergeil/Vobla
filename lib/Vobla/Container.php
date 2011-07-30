@@ -30,7 +30,8 @@ use Vobla\ServiceConstruction\ServiceBuilder,
     Vobla\Context\Context,
     Vobla\ServiceLocating\DefaultImpls\QualifierServiceLocator,
     Vobla\ServiceLocating\CompositeServiceLocator,
-    Vobla\ServiceConstruction\Definition\ServiceDefinition;
+    Vobla\ServiceConstruction\Definition\ServiceDefinition,
+    Vobla\ServiceLocating\ServiceLocator;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -67,42 +68,34 @@ class Container
      */
     protected $configuration;
 
+    /**
+     * @var \Vobla\BuildersFactory
+     */
+    protected $buildersFactory;
+
     public function __construct($configuration = null)
     {
         if (null === $configuration) {
-            $cfg = new Configuration();
-            $cfg->validate();
-            $this->setConfiguration($cfg);
+            $this->setConfiguration(new Configuration());
         }
     }
-    
+
     public function setContext(Context $context)
     {
         $context->init($this);
         $this->context = $context;
     }
 
+    /**
+     * @return Vobla\Context\Context
+     */
     public function getContext()
     {
         if (null == $this->context) {
-            $this->context = new CompositeContext();
-            $this->context->init($this);
+            $this->setContext(new CompositeContext());
         }
 
         return $this->context;
-    }
-
-    /**
-     * @return \Vobla\ServiceConstruction\ServiceBuilder
-     */
-    public function getServiceBuilder()
-    {
-        if (null === $this->serviceBuilder) {
-            $this->serviceBuilder = new ServiceBuilder();
-            $this->serviceBuilder->init($this);
-        }
-
-        return $this->serviceBuilder;
     }
 
     /**
@@ -114,12 +107,36 @@ class Container
         $this->serviceBuilder = $serviceBuilder;
     }
 
+    /**
+     * @return \Vobla\ServiceConstruction\ServiceBuilder
+     */
+    public function getServiceBuilder()
+    {
+        if (null === $this->serviceBuilder) {
+            $this->setServiceBuilder(new ServiceBuilder());
+        }
+
+        return $this->serviceBuilder;
+    }
+
     public function setDefinitionsHolder(DefinitionsHolder $definitionsHolder)
     {
         $this->definitionsHolder = $definitionsHolder;
     }
 
-    public function setServiceLocator($serviceLocator)
+    /**
+     * @return \Vobla\ServiceConstruction\DefinitionsHolder
+     */
+    public function getDefinitionsHolder()
+    {
+        if (null === $this->definitionsHolder) {
+            $this->definitionsHolder = new DefinitionsHolder();
+        }
+
+        return $this->definitionsHolder;
+    }
+
+    public function setServiceLocator(ServiceLocator $serviceLocator)
     {
         $serviceLocator->init($this);
         $this->serviceLocator = $serviceLocator;
@@ -131,8 +148,7 @@ class Container
     public function getServiceLocator()
     {
         if (null === $this->serviceLocator) {
-            $this->serviceLocator = new CompositeServiceLocator();
-            $this->serviceLocator->init($this);
+            $this->setServiceLocator(new CompositeServiceLocator());
         }
 
         return $this->serviceLocator;
@@ -140,6 +156,8 @@ class Container
 
     public function setConfiguration(Configuration $configuration)
     {
+        $configuration->validate();
+        
         $this->configuration = $configuration;
         $configuration->getAssemblersProvider()->init($this);
         $configuration->getContextScopeHandlersProvider()->init($this);
@@ -154,19 +172,7 @@ class Container
         return $this->configuration;
     }
 
-    /**
-     * @return ServiceConstruction\DefinitionsHolder
-     */
-    public function getDefinitionsHolder()
-    {
-        if (null === $this->definitionsHolder) {
-            $this->definitionsHolder = new DefinitionsHolder();
-        }
-
-        return $this->definitionsHolder;
-    }
-
-    public function setConfigHolder($configHolder)
+    public function setConfigHolder(ConfigHolder $configHolder)
     {
         $this->configHolder = $configHolder;
     }
@@ -181,6 +187,27 @@ class Container
         }
 
         return $this->configHolder;
+    }
+
+    /**
+     * @param \Vobla\BuildersFactory $buildersFactory
+     */
+    public function setBuildersFactory(BuildersFactory $buildersFactory)
+    {
+        $buildersFactory->init($this);
+        $this->buildersFactory = $buildersFactory;
+    }
+
+    /**
+     * @return \Vobla\BuildersFactory
+     */
+    public function getBuildersFactory()
+    {
+        if (null === $this->buildersFactory) {
+            $this->setBuildersFactory(new BuildersFactory());
+        }
+
+        return $this->buildersFactory;
     }
 
     public function addServiceDefinition($id, ServiceDefinition $serviceDefinition)
@@ -231,9 +258,7 @@ class Container
 
         return $this->getServiceById($result[0]);
     }
-
-
-        
+            
     static public function clazz()
     {
         return get_called_class();

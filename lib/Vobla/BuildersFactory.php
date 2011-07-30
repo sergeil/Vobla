@@ -56,20 +56,18 @@ class BuildersFactory
     }
 
     /**
-     * @return void
+     * @return \Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder
      */
-    public function createXmlBuilder()
+    public function createXmlBuilder($processorsProvider = null)
     {
-        return new XmlBuilder($this->getContainer());
+        return new XmlBuilder($this->getContainer(), $processorsProvider);
     }
 
-    public function createAnnotationsBuilder()
+    /**
+     * @return \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder
+     */
+    public function createAnnotationsBuilder($processorsProvider = null)
     {
-        return new AnnotationsBuilder($this->getContainer());
-    }
-
-    public function createYmlBuilder()
-    {
-        // TODO
+        return new AnnotationsBuilder($this->getContainer(), $processorsProvider);
     }
 }
