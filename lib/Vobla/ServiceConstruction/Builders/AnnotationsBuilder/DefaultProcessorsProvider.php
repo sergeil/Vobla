@@ -56,8 +56,7 @@ class DefaultProcessorsProvider implements ProcessorsProvider
             new PropertiesProcessor(),
             new QualifierProcessor(),
             new TagsProcessor(),
-            new TypeProcessor(),
-            new ConfigProcessor()
+            new TypeProcessor()
         );
     }
 

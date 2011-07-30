@@ -64,7 +64,7 @@ abstract class AbstractPropertiesProcessor extends AbstractDereferencingProcesso
                     'Unable to handle some annotation of property %s::%s',
                     $reflClass->getName(), $reflProp->getName()
                 );
-                throw new Exception($msg);
+                throw new Exception($msg, null, $e);
             }
 
             if ($refDef !== null && !isset($currentServiceArgs[$reflProp->getName()])) {

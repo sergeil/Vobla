@@ -36,7 +36,9 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Definition\References\TypeReference,
     Vobla\ServiceConstruction\Builders\InjectorsOrderResolver,
     Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
-    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference;
+    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\ConfigProperty,
+    Vobla\Exception;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -68,12 +70,29 @@ class PropertiesProcessor extends AbstractPropertiesProcessor
         return $this->injectorsOrderResolver;
     }
 
+    /**
+     * @throws \Vobla\Exception
+     * @param \Doctrine\Common\Annotations\AnnotationReader $annotationReader
+     * @param \ReflectionClass $reflClass
+     * @param \ReflectionProperty $reflProp
+     * @param \Vobla\ServiceConstruction\Definition\ServiceDefinition $serviceDefinition
+     * @return mixed
+     */
     protected function handleProperty(AnnotationReader $annotationReader, \ReflectionClass $reflClass, \ReflectionProperty $reflProp, ServiceDefinition $serviceDefinition)
     {
         /* @var Annotations\Autowired $autowiredAnnotation */
         $awAnn = $annotationReader->getPropertyAnnotation($reflProp, Autowired::clazz());
         $awSetAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredSet::clazz());
         $awMapAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredMap::clazz());
+        $cpAnn = $annotationReader->getPropertyAnnotation($reflProp, ConfigProperty::clazz());
+
+        if ($cpAnn && ($awAnn || $awSetAnn || $awMapAnn)) {
+            $msg = sprintf(
+                '%s annotation should not be mixed with some of AutowiredXXX annotation on the same property!',
+                ConfigProperty::clazz()
+            );
+            throw new Exception($msg);
+        }
 
         if ($awAnn) {
             return $this->dereferenceAutowiredAnnotation($serviceDefinition, $awAnn, $reflProp->getName());
@@ -81,6 +100,8 @@ class PropertiesProcessor extends AbstractPropertiesProcessor
             return $this->dereferenceAutowiredSetAnnotation($serviceDefinition, $awSetAnn);
         } else if ($awMapAnn) {
             return $this->dereferenceAutowiredMapAnnotation($serviceDefinition, $awMapAnn);
+        } else if ($cpAnn) {
+            return $this->dereferenceConfigPropertyAnnotation($serviceDefinition, $cpAnn);
         }
     }
 }

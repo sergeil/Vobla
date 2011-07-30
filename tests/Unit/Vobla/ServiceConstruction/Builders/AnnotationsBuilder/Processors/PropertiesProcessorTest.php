@@ -36,7 +36,8 @@ use Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Definition\References\TypeReference,
     Vobla\ServiceConstruction\Definition\References\TagReference,
     Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
-    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference;
+    Vobla\ServiceConstruction\Definition\References\TypeCollectionReference,
+    Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference;
 
 /**
  *
@@ -107,7 +108,7 @@ class PropertiesProcessorTest extends \PHPUnit_Framework_TestCase
 
         $this->pp->setInjectorsOrderResolver($ior);
         $this->pp->handle($this->ar, new \ReflectionClass(GeneralizedAutowiringClass::clazz()), $def);
-        
+
         $this->assertEquals(6, sizeof($resolved));
         $expectedKeys = array('id', 'qlr', 'type', 'tag');
         $this->assertEquals(array_keys($resolved[0]), $expectedKeys);
@@ -120,6 +121,22 @@ class PropertiesProcessorTest extends \PHPUnit_Framework_TestCase
         $this->doTestCollectionResult($resolved[2], 'bar', 'map');
         $this->doTestCollectionResult($resolved[4], 'foo', 'set');
         $this->doTestCollectionResult($resolved[5], 'foo', 'map');
+
+        // args must contain only 1 element because our mock of "resolve" method returns nothing directly
+        $sArgs = $def->getArguments();
+        $this->assertEquals(1, sizeof($sArgs));
+        $this->assertTrue(isset($sArgs['fooCfg']));
+        $this->assertType(ConfigPropertyReference::clazz(), $sArgs['fooCfg']);
+        $this->assertEquals('fooCfgProp', $sArgs['fooCfg']->getName());
+    }
+
+    /**
+     * @expectedException Vobla\Exception
+     */
+    public function testHandle_configPropertyAndAutowiredAtTheSameTime()
+    {
+        $def = new ServiceDefinition();
+        $this->pp->handle($this->ar, new \ReflectionClass(ConfigPropertyAndAutowiredMixed::clazz()), $def);
     }
 
     protected function doTestResolvedResult(array $resolvedEntry, $propertyName)

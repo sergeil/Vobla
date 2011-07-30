@@ -27,12 +27,12 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations as Vobla;
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service()
+ * @Vobla\Service()
  */
 class ClassWithLocalFactoryMethod
 {
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor(
+     * @Vobla\Constructor(
      *     params={
      *         @Vobla\Parameter(name="aService", as=@Vobla\Autowired(qualifier="fooQfr")),
      *         @Vobla\Parameter(name="cService", as=@Vobla\Autowired(id="megaCService")),
@@ -53,12 +53,12 @@ class ClassWithLocalFactoryMethod
 }
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ * @Vobla\Service
  */
 class ClassWithTwoConstructors
 {
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor
+     * @Vobla\Constructor
      */
     public function factory1()
     {
@@ -66,7 +66,7 @@ class ClassWithTwoConstructors
     }
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor
+     * @Vobla\Constructor
      */
     public function factory2()
     {
@@ -83,7 +83,7 @@ class ClassWithTwoConstructors
 // ---
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(
+ * @Vobla\Service(
  *   id="someFooServiceId",
  *   qualifier="someQualifier",
  *   isAbstract="false",
@@ -108,44 +108,44 @@ class ClassWithAllGeneralProperties
 class SomeBarService
 {
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired
+     * @Vobla\Autowired
      */
     public $ref5x;
 }
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(id="someFooServiceId")
+ * @Vobla\Service(id="someFooServiceId")
  */
 class SomeFooService extends SomeBarService
 {
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired
+     * @Vobla\Autowired
      */
     protected $ref4x;
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(id="someRef3xService")
+     * @Vobla\Autowired(id="someRef3xService")
      */
     protected $ref3x;
 }
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service(id="someDumbServiceId", scope="fooScope", qualifier="fooQualifier")
+ * @Vobla\Service(id="someDumbServiceId", scope="fooScope", qualifier="fooQualifier")
  */
 class SomeDumbService extends SomeFooService
 {
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired
+     * @Vobla\Autowired
      */
     protected $ref1x;
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(id="barbaz")
+     * @Vobla\Autowired(id="barbaz")
      */
     protected $ref2x;
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(qualifier="booz", id="bazbar")
+     * @Vobla\Autowired(qualifier="booz", id="bazbar")
      */
     protected $ref3x;
 
@@ -158,7 +158,7 @@ class SomeDumbService extends SomeFooService
 
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ * @Vobla\Service
  */
 class ClassWithNoId
 {
@@ -169,9 +169,9 @@ class ClassWithNoId
 }
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("fooTag")
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("barTag")
+ * @Vobla\Service
+ * @Vobla\Tag("fooTag")
+ * @Vobla\Tag("barTag")
  */
 class ClassWithTags
 {
@@ -185,9 +185,9 @@ class ClassWithTags
 }
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("foo-fooTag")
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag("bar-barTag")
+ * @Vobla\Service
+ * @Vobla\Tag("foo-fooTag")
+ * @Vobla\Tag("bar-barTag")
  */
 class AnotherClassWithTags extends ClassWithTags
 {
@@ -195,7 +195,7 @@ class AnotherClassWithTags extends ClassWithTags
 }
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Qualifier("fooQualifier")
+ * @Vobla\Qualifier("fooQualifier")
  */
 class ClassWithQualifier
 {
@@ -211,12 +211,12 @@ class ClassWithQualifier
 // ----
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ * @Vobla\Service
  */
 class AutowiringClass
 {
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(
+     * @Vobla\Autowired(
      *     id="fooId",
      *     qualifier="fooQualifier",
      *     type="fooType",
@@ -226,7 +226,7 @@ class AutowiringClass
     protected $foo;
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredSet(
+     * @Vobla\AutowiredSet(
      *     type="fooType",
      *     tags={"fooTag1", "fooTag2"}
      * )
@@ -234,7 +234,7 @@ class AutowiringClass
     protected $fooSet;
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredMap(
+     * @Vobla\AutowiredMap(
      *     type="fooType",
      *     tags={"fooTag1", "fooTag2"}
      * )
@@ -251,12 +251,12 @@ class AutowiringClass
 }
 
 /**
- * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service
+ * @Vobla\Service
  */
 class GeneralizedAutowiringClass extends AutowiringClass
 {
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired(
+     * @Vobla\Autowired(
      *     id="barId",
      *     qualifier="barQualifier",
      *     type="barType",
@@ -266,7 +266,7 @@ class GeneralizedAutowiringClass extends AutowiringClass
     protected $bar;
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredSet(
+     * @Vobla\AutowiredSet(
      *     type="barType",
      *     tags={"barTag1", "barTag2"}
      * )
@@ -274,12 +274,39 @@ class GeneralizedAutowiringClass extends AutowiringClass
     protected $barSet;
 
     /**
-     * @Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredMap(
+     * @Vobla\AutowiredMap(
      *     type="barType",
      *     tags={"barTag1", "barTag2"}
      * )
      */
     protected $barMap;
+
+    /**
+     * @Vobla\ConfigProperty(
+     *     name="fooCfgProp"
+     * )
+     */
+    protected $fooCfg;
+}
+
+/**
+ * @Vobla\Service
+ */
+class ConfigPropertyAndAutowiredMixed
+{
+    /**
+     * @Vobla\AutowiredSet(type="barType")
+     * @Vobla\ConfigProperty(name="blah")
+     */
+    protected $fooProp;
+
+    /**
+     * @return string
+     */
+    static public function clazz()
+    {
+        return get_called_class();
+    }
 }
 
 /**
