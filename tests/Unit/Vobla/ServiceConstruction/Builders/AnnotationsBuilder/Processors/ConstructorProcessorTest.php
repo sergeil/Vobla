@@ -38,39 +38,27 @@ use Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredSet,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\ConfigProperty,
-    Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference;
+    Vobla\ServiceConstruction\Definition\References\ConfigPropertyReference,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder,
+    Vobla\Container;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
+class ConstructorProcessorTest extends AbstractTest
 {
-    /**
-     * @var \Moko\MockFactory
-     */
-    protected $mf;
-
-    /**
-     * @var \Doctrine\Common\Annotations\AnnotationReader
-     */
-    protected $ar;
-
     /**
      * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\ConstructorProcessor
      */
     protected $cp;
 
-    public function setUp()
+    public function doSetUp()
     {
-        $this->mf = new \Moko\MockFactory($this);
-        $this->ar = new AnnotationReader();
         $this->cp = new ConstructorProcessor();
     }
 
-    public function tearDown()
+    public function doTearDown()
     {
-        $this->mf = null;
-        $this->ar = null;
         $this->cp = null;
     }
 
@@ -80,7 +68,7 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
     public function testHandle_withTwoConstructors()
     {
         $reflClass = new \ReflectionClass(ClassWithTwoConstructors::clazz());
-        $this->cp->handle($this->ar, $reflClass, new ServiceDefinition());
+        $this->cp->handle($reflClass, new ServiceDefinition(), $this->ab);
     }
 
     public function testHandle_withLocalFactoryMethodAndParameters()
@@ -88,7 +76,7 @@ class ConstructorProcessorTest extends \PHPUnit_Framework_TestCase
         $reflClass = new \ReflectionClass(ClassWithLocalFactoryMethod::clazz());
         $def = new ServiceDefinition();
         try {
-            $this->cp->handle($this->ar, $reflClass, $def);
+            $this->cp->handle($reflClass, $def, $this->ab);
         } catch (\Exception $e) {
             \Vobla\Tools\Toolkit::printException($e);
             echo "\n\n";

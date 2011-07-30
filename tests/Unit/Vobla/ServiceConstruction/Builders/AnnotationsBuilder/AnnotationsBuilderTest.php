@@ -69,7 +69,9 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function test_defaultGetters()
     {
-        $ab = new AnnotationsBuilder();
+        $container = $this->mf->createTestCaseAware(Container::clazz())->createMock();
+
+        $ab = new AnnotationsBuilder($container);
 
         $this->assertType(
             'Doctrine\Common\Annotations\AnnotationReader',
@@ -87,11 +89,9 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
     public function testProcessClass()
     {
         $tc = $this;
-        $annotationReader = new AnnotationReader();
         $reflTarget = new \ReflectionClass(SomeClassForAnnotationReader::clazz());
 
-        $p1 = $this->mf->createTestCaseAware(Processor::CLAZZ)->addMethod('handle', function($self, $argAnnotationReader, $argReflTarget, $argDef) use($tc, $reflTarget, $annotationReader) {
-            $tc->assertSame($annotationReader, $argAnnotationReader);
+        $p1 = $this->mf->createTestCaseAware(Processor::CLAZZ)->addMethod('handle', function($self, $argReflTarget, $argDef, $argAnnBuilder) use($tc, $reflTarget) {
             $tc->assertSame($reflTarget, $argReflTarget);
             $tc->assertType(ServiceDefinition::clazz(), $argDef);
         }, 1)->createMock();
@@ -106,8 +106,9 @@ class AnnotationsBuilderTest extends \PHPUnit_Framework_TestCase
             return 'some-unique-id';
         }, 1)->createMock();
 
-        $ab = new AnnotationsBuilder($processorsProvider);
-        $ab->setAnnotationReader($annotationReader);
+        $container = $this->mf->createTestCaseAware(Container::clazz())->createMock();
+
+        $ab = new AnnotationsBuilder($container, $processorsProvider);
         $ab->setServiceIdGenerator($serviceIdGenerator);
 
         $result = $ab->processClass($reflTarget);

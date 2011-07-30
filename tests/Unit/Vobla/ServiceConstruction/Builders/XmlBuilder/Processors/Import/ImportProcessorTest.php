@@ -118,15 +118,15 @@ XML;
 
         /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder $xmlBuilder */
         $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())
-        ->addMethod('processXml', function($self, $xmlBody, $container) use($ip) {
-            $ip->processXml($xmlBody, $container, $self);
+        ->addMethod('processXml', function($self, $xmlBody) use($ip) {
+            $ip->processXml($xmlBody, $self);
         }, 2)
         ->createMock();
 
         /* @var \Vobla\Container $container */
         $container = $this->mf->create(Container::clazz())->createMock();
 
-        $ip->processXml($xml, $container, $xmlBuilder);
+        $ip->processXml($xml, $xmlBuilder);
 
         $resolvedResources = $ip->getResolvedResources();
         

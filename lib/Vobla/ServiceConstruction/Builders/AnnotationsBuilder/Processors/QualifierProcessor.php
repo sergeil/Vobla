@@ -25,19 +25,21 @@
 namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Qualifier;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Qualifier,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class QualifierProcessor extends AbstractProcessor
 {
-    public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)
+    public function handle(\ReflectionClass $reflClass, ServiceDefinition $serviceDefinition, AnnotationsBuilder $annotationsBuilder)
     {
+        $ar = $annotationsBuilder->getAnnotationReader();
+        
         /* @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Qualifier $qualifierAnn */
-        $qualifierAnn = $annotationReader->getClassAnnotation($reflClass, Qualifier::clazz());
+        $qualifierAnn = $ar->getClassAnnotation($reflClass, Qualifier::clazz());
         if ($qualifierAnn) {
             $serviceDefinition->setMetaEntry('qualifier', $qualifierAnn->value);
         }

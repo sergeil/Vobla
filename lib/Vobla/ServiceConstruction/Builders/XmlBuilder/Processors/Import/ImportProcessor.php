@@ -77,7 +77,7 @@ class ImportProcessor implements Processor
         $this->resolvedResources = array();
     }
 
-    public function processXml($xmlBody, Container $container, XmlBuilder $xmlBuilder)
+    public function processXml($xmlBody, XmlBuilder $xmlBuilder)
     {
         $xmlEl = new \SimpleXMLElement($xmlBody, 0, false, XsdNamespaces::CONTEXT);
         foreach ($xmlEl->children() as $childXml) {
@@ -94,7 +94,7 @@ class ImportProcessor implements Processor
                 }
 
                 $resourceBody = $this->loadResource($resourcePath);
-                $xmlBuilder->processXml($resourceBody, $container);
+                $xmlBuilder->processXml($resourceBody);
             }
         }
     }

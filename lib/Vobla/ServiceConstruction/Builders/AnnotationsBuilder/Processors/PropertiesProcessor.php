@@ -27,7 +27,6 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
-    Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Definition\References\QualifiedReference,
     Vobla\ServiceConstruction\Definition\References\IdReference,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\AutowiredSet,
@@ -38,7 +37,8 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Definition\References\TagsCollectionReference,
     Vobla\ServiceConstruction\Definition\References\TypeCollectionReference,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\ConfigProperty,
-    Vobla\Exception;
+    Vobla\Exception,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -78,13 +78,15 @@ class PropertiesProcessor extends AbstractPropertiesProcessor
      * @param \Vobla\ServiceConstruction\Definition\ServiceDefinition $serviceDefinition
      * @return mixed
      */
-    protected function handleProperty(AnnotationReader $annotationReader, \ReflectionClass $reflClass, \ReflectionProperty $reflProp, ServiceDefinition $serviceDefinition)
+    protected function handleProperty(\ReflectionClass $reflClass, \ReflectionProperty $reflProp, ServiceDefinition $serviceDefinition, AnnotationsBuilder $annotationsBuilder)
     {
+        $ar = $annotationsBuilder->getAnnotationReader();
+
         /* @var Annotations\Autowired $autowiredAnnotation */
-        $awAnn = $annotationReader->getPropertyAnnotation($reflProp, Autowired::clazz());
-        $awSetAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredSet::clazz());
-        $awMapAnn = $annotationReader->getPropertyAnnotation($reflProp, AutowiredMap::clazz());
-        $cpAnn = $annotationReader->getPropertyAnnotation($reflProp, ConfigProperty::clazz());
+        $awAnn = $ar->getPropertyAnnotation($reflProp, Autowired::clazz());
+        $awSetAnn = $ar->getPropertyAnnotation($reflProp, AutowiredSet::clazz());
+        $awMapAnn = $ar->getPropertyAnnotation($reflProp, AutowiredMap::clazz());
+        $cpAnn = $ar->getPropertyAnnotation($reflProp, ConfigProperty::clazz());
 
         if ($cpAnn && ($awAnn || $awSetAnn || $awMapAnn)) {
             $msg = sprintf(

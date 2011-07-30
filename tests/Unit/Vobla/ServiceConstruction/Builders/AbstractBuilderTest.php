@@ -26,7 +26,8 @@ namespace Vobla\ServiceConstruction\Builders;
 
 require_once __DIR__.'/../../../../bootstrap.php';
 
-use Vobla\ServiceConstruction\Builders\XmlBuilder\ProcessorsProvider;
+use Vobla\ServiceConstruction\Builders\XmlBuilder\ProcessorsProvider,
+    Vobla\Container;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -52,12 +53,14 @@ class AbstractBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $pp = new \stdClass();
 
+        $container = $this->mf->createTestCaseAware(Container::clazz())->createMock();
+
         /* @var \Vobla\ServiceConstruction\Builders\AbstractBuilder $ab */
         $ab = $this->mf->createTestCaseAware(AbstractBuilder::clazz(), false)
         ->addDelegateMethod('__construct')
         ->addDelegateMethod('getProcessorsProvider')
         ->addMethod('getDefaultProcessorsProvider', $pp, 3)
-        ->createMock();
+        ->createMock(array($container));
     }
 
     public function testGetProcessorsAndGetProcessor()
@@ -68,6 +71,8 @@ class AbstractBuilderTest extends \PHPUnit_Framework_TestCase
         ->addMethod('getProcessors', $processors, 1)
         ->createMock();
 
+        $container = $this->mf->createTestCaseAware(Container::clazz())->createMock();
+
         /* @var \Vobla\ServiceConstruction\Builders\AbstractBuilder $ab */
         $ab = $this->mf->createTestCaseAware(AbstractBuilder::clazz(), false)
         ->addDelegateMethod('__construct')
@@ -75,7 +80,7 @@ class AbstractBuilderTest extends \PHPUnit_Framework_TestCase
         ->addDelegateMethod('getProcessorsProvider')
         ->addDelegateMethod('getProcessors')
         ->addDelegateMethod('getProcessor')
-        ->createMock();
+        ->createMock(array($container));
 
         $this->assertSame($pp, $ab->getProcessorsProvider());
         $cachedProcessors = $ab->getProcessors();

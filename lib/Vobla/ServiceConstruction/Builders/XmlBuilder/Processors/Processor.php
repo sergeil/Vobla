@@ -36,5 +36,5 @@ interface Processor
 {
     const CLAZZ = 'Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Processor';
 
-    public function processXml($xmlBody, Container $container, XmlBuilder $xmlBuilder);
+    public function processXml($xmlBody, XmlBuilder $xmlBuilder);
 }

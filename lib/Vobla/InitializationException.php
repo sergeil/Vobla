@@ -32,5 +32,13 @@ namespace Vobla;
  */ 
 class InitializationException extends Exception
 {
-    
+    static public function create($owner, $initMethod = 'init')
+    {
+        $msg = sprintf(
+            'Initialization step was skipped, you need to use %s::%s before you can this class.',
+            get_class($owner), $initMethod
+        );
+
+        throw new self($msg);
+    }
 }

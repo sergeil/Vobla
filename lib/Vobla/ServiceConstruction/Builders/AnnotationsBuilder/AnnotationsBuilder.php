@@ -40,7 +40,6 @@ if (!defined('VOBLA_ANNOTATIONS_LOADED')) {
 }
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class AnnotationsBuilder extends AbstractBuilder
@@ -138,7 +137,7 @@ class AnnotationsBuilder extends AbstractBuilder
         foreach ($this->getProcessors() as $processor) {
             try {
                 /* @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\Processor $processor */
-                $processor->handle($this->getAnnotationReader(), $reflClass, $definition);
+                $processor->handle($reflClass, $definition, $this);
             } catch (\Exception $e) {
                 throw new Exception(
                     sprintf('Execution of "%s" processor failed.', get_class($processor)),

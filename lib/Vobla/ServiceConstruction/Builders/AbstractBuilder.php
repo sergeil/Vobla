@@ -24,6 +24,8 @@
 
 namespace Vobla\ServiceConstruction\Builders;
 
+use Vobla\Container;
+
 /**
  *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -44,6 +46,27 @@ abstract class AbstractBuilder
      * @var array
      */
     protected $cachedProcessors;
+
+    /**
+     * @var \Vobla\Container
+     */
+    protected $container;
+
+    /**
+     * @param \Vobla\Container $container
+     */
+    public function setContainer(Container $container)
+    {
+        $this->container = $container;
+    }
+
+    /**
+     * @return \Vobla\Container
+     */
+    public function getContainer()
+    {
+        return $this->container;
+    }
 
     public function getProcessorsProvider()
     {
@@ -93,8 +116,10 @@ abstract class AbstractBuilder
      */
     abstract protected function getDefaultProcessorsProvider();
 
-    public function __construct($processorsProvider = null)
+    public function __construct(Container $container, $processorsProvider = null)
     {
+        $this->container = $container;
+
         if (null === $processorsProvider) {
             $this->processorsProvider = $this->getDefaultProcessorsProvider();
         } else {

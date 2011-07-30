@@ -978,7 +978,9 @@ XML;
         }, 1)
         ->createMock();
 
-        $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())->createMock();
+        $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())
+                               ->addMethod('getContainer', $container)
+                              ->createMock();
 
         $xml = <<<XML
     <context xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -991,7 +993,7 @@ XML;
 </context>
 XML;
 ;
-        $sp->processXml($xml, $container, $xmlBuilder);
+        $sp->processXml($xml, $xmlBuilder);
     }
 
     public function testProcessXml_serviceWithNoId()
@@ -1031,14 +1033,16 @@ XML;
         }, 1)
         ->createMock();
 
-        $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())
-        ->addMethod('getServiceIdGenerator', $serviceIdGenerator)
-        ->createMock();
         $container = $this->mf->createTestCaseAware(Container::clazz())
         ->addMethod('addServiceDefinition')
         ->createMock();
 
-        $sp->processXml($xml, $container, $xmlBuilder);
+        $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())
+        ->addMethod('getServiceIdGenerator', $serviceIdGenerator)
+        ->addMethod('getContainer', $container)
+        ->createMock();
+        
+        $sp->processXml($xml, $xmlBuilder);
     }
 
     public function testParseConfigTag()
@@ -1206,9 +1210,11 @@ XML;
         ->addMethod('getConfigHolder', $configHolder, 1)
         ->createMock();
 
-        $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())->createMock();
+        $xmlBuilder = $this->mf->createTestCaseAware(XmlBuilder::clazz())
+        ->addMethod('getContainer', $container)
+        ->createMock();
 
-        $this->sp->processXml($xml, $container, $xmlBuilder);
+        $this->sp->processXml($xml, $xmlBuilder);
 
         $this->assertEquals(
             1,

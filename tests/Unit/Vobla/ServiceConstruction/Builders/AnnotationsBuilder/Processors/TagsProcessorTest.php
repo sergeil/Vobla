@@ -27,35 +27,27 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 require_once __DIR__.'/../../../../../../bootstrap.php';
 require_once __DIR__.'/fixtures/classes.php';
 
-use Doctrine\Common\Annotations\AnnotationReader,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TagsProcessor,
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TagsProcessor,
     Vobla\ServiceConstruction\Definition\ServiceDefinition;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class TagsProcessorTest extends \PHPUnit_Framework_TestCase
+class TagsProcessorTest extends AbstractTest
 {
     /**
      * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TagsProcessor
      */
     protected $tp;
 
-    /**
-     * @var \Doctrine\Common\Annotations\AnnotationReader
-     */
-    protected $ar;
-
-    public function setUp()
+    public function doSetUp()
     {
         $this->tp = new TagsProcessor();
-        $this->ar = new AnnotationReader();
     }
 
-    public function tearDown()
+    public function doTearDown()
     {
         $this->tp = null;
-        $this->ar = null;
     }
 
     public function testHandle()
@@ -63,7 +55,7 @@ class TagsProcessorTest extends \PHPUnit_Framework_TestCase
         $rc = new \ReflectionClass(ClassWithTags::clazz());
         $def = new ServiceDefinition();
 
-        $this->tp->handle($this->ar, $rc, $def);
+        $this->tp->handle($rc, $def, $this->ab);
 
         $tags = $def->getMetaEntry('tags');
         $this->assertTrue(
@@ -85,7 +77,7 @@ class TagsProcessorTest extends \PHPUnit_Framework_TestCase
         $rc = new \ReflectionClass(AnotherClassWithTags::clazz());
         $def = new ServiceDefinition();
 
-        $this->tp->handle($this->ar, $rc, $def);
+        $this->tp->handle($rc, $def, $this->ab);
 
         $this->assertEquals(
             array('fooTag', 'barTag', 'foo-fooTag', 'bar-barTag'),

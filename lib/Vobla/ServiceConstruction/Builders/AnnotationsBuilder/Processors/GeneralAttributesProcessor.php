@@ -25,8 +25,8 @@
 namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Doctrine\Common\Annotations\AnnotationReader,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
 /**
  *
@@ -37,9 +37,10 @@ class GeneralAttributesProcessor extends AbstractProcessor
     /**
      * {@inheritdoc}
      */
-    public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $sd)
+    public function handle(\ReflectionClass $reflClass, ServiceDefinition $sd, AnnotationsBuilder $annotationsBuilder)
     {
-        $serviceAnnotation = $annotationReader->getClassAnnotation($reflClass, Service::clazz());
+        $ar = $annotationsBuilder->getAnnotationReader();
+        $serviceAnnotation = $ar->getClassAnnotation($reflClass, Service::clazz());
 
         $aib = $serviceAnnotation->isAbstract;
         $isAbstract = is_bool($aib) ? $aib : $aib == 'true';

@@ -27,43 +27,35 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 require_once __DIR__.'/../../../../../../bootstrap.php';
 require_once __DIR__.'/fixtures/classes.php';
 
-use Doctrine\Common\Annotations\AnnotationReader,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TypeProcessor,
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TypeProcessor,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\NotByTypeWiringCandidate;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class TypeProcessorTest extends \PHPUnit_Framework_TestCase
+class TypeProcessorTest extends AbstractTest
 {
     /**
      * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\TypeProcessor
      */
     protected $tp;
 
-    /**
-     * @var \Doctrine\Common\Annotations\AnnotationReader
-     */
-    protected $ar;
-
-    public function setUp()
+    public function doSetUp()
     {
         $this->tp = new TypeProcessor();
-        $this->ar = new AnnotationReader();
     }
 
-    public function tearDown()
+    public function doTearDown()
     {
         $this->tp = null;
-        $this->ar = null;
     }
 
     public function testHandle()
     {
         $def = new ServiceDefinition();
 
-        $this->tp->handle($this->ar, new \ReflectionClass(ClassWithNotByTypeWiringCandidateAnnotation::clazz()), $def);
+        $this->tp->handle(new \ReflectionClass(ClassWithNotByTypeWiringCandidateAnnotation::clazz()), $def, $this->ab);
 
         $this->assertTrue(
             $def->getMetaEntry('notByTypeWiringCandidate'),
@@ -78,7 +70,7 @@ class TypeProcessorTest extends \PHPUnit_Framework_TestCase
     {
         $def = new ServiceDefinition();
 
-        $this->tp->handle($this->ar, new \ReflectionClass(ClassWithoutNotByTypeWiringCandidate::clazz()), $def);
+        $this->tp->handle(new \ReflectionClass(ClassWithoutNotByTypeWiringCandidate::clazz()), $def, $this->ab);
 
         $this->assertNull($def->getMetaEntry('notByTypeWiringCandidate'));
     }

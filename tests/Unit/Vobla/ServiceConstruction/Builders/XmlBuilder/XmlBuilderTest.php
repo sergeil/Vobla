@@ -80,8 +80,8 @@ class XmlBuilderTest extends \PHPUnit_Framework_TestCase
 
         $container = $this->mf->create(Container::clazz())->createMock();
 
-        $xmlBuilder = new XmlBuilder($processorsProvider);
-        $xmlBuilder->processXml('fooXml', $container);
+        $xmlBuilder = new XmlBuilder($container, $processorsProvider);
+        $xmlBuilder->processXml('fooXml');
 
     }
 }

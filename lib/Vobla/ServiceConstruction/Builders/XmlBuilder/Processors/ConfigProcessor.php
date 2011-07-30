@@ -31,12 +31,11 @@ use Vobla\Container,
     Vobla\ServiceConstruction\Definition\References\IdReference;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class ConfigProcessor implements Processor
 {
-    public function processXml($xmlBody, Container $container, XmlBuilder $xmlBuilder)
+    public function processXml($xmlBody, XmlBuilder $xmlBuilder)
     {
     }
 }

@@ -27,8 +27,8 @@ namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Autowired,
-    Doctrine\Common\Annotations\AnnotationReader,
-    Vobla\Exception;
+    Vobla\Exception,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -38,14 +38,16 @@ abstract class AbstractPropertiesProcessor extends AbstractDereferencingProcesso
     /**
      * {@inheritdoc}
      */
-    public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)
+    public function handle(\ReflectionClass $reflClass, ServiceDefinition $serviceDefinition, AnnotationsBuilder $annotationsBuilder)
     {
+        $ar = $annotationsBuilder->getAnnotationReader();
+
         $currentServiceArgs = $serviceDefinition->getArguments();
         $result = $serviceClasses = array();
         foreach ($reflClass->getProperties() as $reflProp) {
             $reflDeclaredClass = $reflProp->getDeclaringClass();
             if (!in_array($reflDeclaredClass->getName(), $serviceClasses)) {
-                $serviceAnnotation = $annotationReader->getClassAnnotation($reflDeclaredClass, Service::clazz());
+                $serviceAnnotation = $ar->getClassAnnotation($reflDeclaredClass, Service::clazz());
                 if ($serviceAnnotation) {
                     $serviceClasses[] = $reflDeclaredClass->getName();
                 }
@@ -58,7 +60,7 @@ abstract class AbstractPropertiesProcessor extends AbstractDereferencingProcesso
 
             $refDef = null;
             try {
-                $refDef = $this->handleProperty($annotationReader, $reflClass, $reflProp, $serviceDefinition);
+                $refDef = $this->handleProperty($reflClass, $reflProp, $serviceDefinition, $annotationsBuilder);
             } catch (\Exception $e) {
                 $msg = sprintf(
                     'Unable to handle some annotation of property %s::%s',
@@ -75,5 +77,5 @@ abstract class AbstractPropertiesProcessor extends AbstractDereferencingProcesso
         $serviceDefinition->setArguments(array_merge($currentServiceArgs, $result));
     }
 
-    abstract protected function handleProperty(AnnotationReader $annotationReader, \ReflectionClass $reflClass, \ReflectionProperty $reflProp, ServiceDefinition $serviceDefinition);
+    abstract protected function handleProperty(\ReflectionClass $reflClass, \ReflectionProperty $reflProp, ServiceDefinition $serviceDefinition, AnnotationsBuilder $annotationsBuilder);
 }

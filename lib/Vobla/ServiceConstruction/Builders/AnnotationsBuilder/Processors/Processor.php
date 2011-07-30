@@ -25,7 +25,7 @@
 namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Doctrine\Common\Annotations\AnnotationReader;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -34,5 +34,5 @@ interface Processor
 {
     const CLAZZ = 'Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\Processor';
 
-    public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition);
+    public function handle(\ReflectionClass $reflClass, ServiceDefinition $serviceDefinition, AnnotationsBuilder $annotationsBuilder);
 }

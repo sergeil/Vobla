@@ -34,28 +34,21 @@ use Doctrine\Common\Annotations\AnnotationReader,
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class QualifierTest extends \PHPUnit_Framework_TestCase
+class QualifierTest extends AbstractTest
 {
     /**
      * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\QualifierProcessor
      */
     protected $qp;
 
-    /**
-     * @var \Doctrine\Common\Annotations\AnnotationReader
-     */
-    protected $ar;
-
-    public function setUp()
+    public function doSetUp()
     {
         $this->qp = new QualifierProcessor();
-        $this->ar = new AnnotationReader();
     }
 
-    public function tearDown()
+    public function doTearDown()
     {
         $this->qp = null;
-        $this->ar = null;
     }
 
     public function testHandle()
@@ -63,7 +56,7 @@ class QualifierTest extends \PHPUnit_Framework_TestCase
         $rc = new \ReflectionClass(ClassWithQualifier::clazz());
         $def = new ServiceDefinition();
 
-        $this->qp->handle($this->ar, $rc, $def);
+        $this->qp->handle($rc, $def, $this->ab);
 
         $this->assertEquals(
             'fooQualifier', $def->getMetaEntry('qualifier'),

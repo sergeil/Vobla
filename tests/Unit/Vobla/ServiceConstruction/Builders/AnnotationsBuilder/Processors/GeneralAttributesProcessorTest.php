@@ -36,34 +36,27 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\GeneralAttr
  *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class GeneralAttributesProcessorTest extends \PHPUnit_Framework_TestCase
+class GeneralAttributesProcessorTest extends AbstractTest
 {
     /**
      * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\GeneralAttributesProcessor
      */
     protected $gap;
 
-    /**
-     * @var \Doctrine\Common\Annotations\AnnotationReader
-     */
-    protected $ar;
-
-    public function setUp()
+    public function doSetUp()
     {
         $this->gap = new GeneralAttributesProcessor();
-        $this->ar = new AnnotationReader();
     }
 
-    public function tearDown()
+    public function doTearDown()
     {
         $this->gap = null;
-        $this->ar = null;
     }
 
     public function testHandle()
     {
         $def = new ServiceDefinition();
-        $this->gap->handle($this->ar, new \ReflectionClass(ClassWithAllGeneralProperties::clazz()), $def);
+        $this->gap->handle(new \ReflectionClass(ClassWithAllGeneralProperties::clazz()), $def, $this->ab);
 
         $this->assertEquals(
             ClassWithAllGeneralProperties::clazz(),

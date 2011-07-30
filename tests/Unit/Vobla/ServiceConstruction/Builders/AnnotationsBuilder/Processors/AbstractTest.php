@@ -22,56 +22,50 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceConstruction\Builders\XmlBuilder;
+namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
-use Vobla\Tools\Notification\EventDispatcher,
-    Vobla\Container,
-    Vobla\ServiceConstruction\Builders\AbstractBuilder;
+require_once __DIR__.'/../../../../../../bootstrap.php';
+require_once __DIR__.'/fixtures/classes.php';
+
+use Doctrine\Common\Annotations\AnnotationReader,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class XmlBuilder extends AbstractBuilder
+abstract class AbstractTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Vobla\Tools\Notification\EventDispatcher
+     * @var \Moko\MockFactory
      */
-    protected $eventDispatcher;
-    
-    /**
-     * @param \Vobla\Tools\Notification\EventDispatcher $eventDispatcher
-     */
-    public function setEventDispatcher($eventDispatcher)
-    {
-        $this->eventDispatcher = $eventDispatcher;
-    }
+    protected $mf;
 
     /**
-     * @return \Vobla\Tools\Notification\EventDispatcher
+     * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder
      */
-    public function getEventDispatcher()
-    {
-        if (null === $this->eventDispatcher) {
-            $this->eventDispatcher = new EventDispatcher();
-        }
+    protected $ab;
 
-        return $this->eventDispatcher;
+    public function setUp()
+    {
+        $this->mf = new \Moko\MockFactory($this);
+
+        $ar = new AnnotationReader();
+        $this->ab = $this->mf->createTestCaseAware(AnnotationsBuilder::clazz())
+                         ->addMethod('getAnnotationReader', $ar)
+                         ->createMock();
+
+        $this->doSetUp();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getDefaultProcessorsProvider()
+    abstract function doSetUp();
+
+    public function tearDown()
     {
-        return new DefaultProcessorsProvider();
+        $this->mf = null;
+        $this->ab = null;
+
+        $this->doTearDown();
     }
 
-    public function processXml($xmlBody)
-    {
-        foreach ($this->getProcessors() as $processor) {
-            /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Processor $processor */
-            $processor->processXml($xmlBody, $this);
-        }
-    }
+    abstract function doTearDown();
 }

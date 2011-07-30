@@ -25,8 +25,8 @@
 namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Doctrine\Common\Annotations\AnnotationReader,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\NotByTypeWiringCandidate;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\NotByTypeWiringCandidate,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -36,9 +36,10 @@ class TypeProcessor implements Processor
     /**
      * {@inheritdoc}
      */
-    public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)
+    public function handle(\ReflectionClass $reflClass, ServiceDefinition $serviceDefinition, AnnotationsBuilder $annotationsBuilder)
     {
-        $notByTypeWiringCandidate = $annotationReader->getClassAnnotation($reflClass, NotByTypeWiringCandidate::clazz());
+        $ar = $annotationsBuilder->getAnnotationReader();
+        $notByTypeWiringCandidate = $ar->getClassAnnotation($reflClass, NotByTypeWiringCandidate::clazz());
         if ($notByTypeWiringCandidate) {
             $serviceDefinition->setMetaEntry('notByTypeWiringCandidate', true);
         }

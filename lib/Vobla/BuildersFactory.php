@@ -22,56 +22,54 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\ServiceConstruction\Builders\XmlBuilder;
+namespace Vobla;
 
-use Vobla\Tools\Notification\EventDispatcher,
-    Vobla\Container,
-    Vobla\ServiceConstruction\Builders\AbstractBuilder;
+use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder,
+    Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class XmlBuilder extends AbstractBuilder
+class BuildersFactory 
 {
     /**
-     * @var \Vobla\Tools\Notification\EventDispatcher
+     * @var \Vobla\Container
      */
-    protected $eventDispatcher;
-    
-    /**
-     * @param \Vobla\Tools\Notification\EventDispatcher $eventDispatcher
-     */
-    public function setEventDispatcher($eventDispatcher)
-    {
-        $this->eventDispatcher = $eventDispatcher;
-    }
+    protected $container;
 
     /**
-     * @return \Vobla\Tools\Notification\EventDispatcher
+     * @throws \Vobla\InitializationException
+     * @return \Vobla\Container
      */
-    public function getEventDispatcher()
+    public function getContainer()
     {
-        if (null === $this->eventDispatcher) {
-            $this->eventDispatcher = new EventDispatcher();
+        if (null === $this->container) {
+            throw InitializationException::create($this);
         }
 
-        return $this->eventDispatcher;
+        return $this->container;
+    }
+
+    public function init(Container $container)
+    {
+        $this->container = $container;
     }
 
     /**
-     * {@inheritdoc}
+     * @return void
      */
-    protected function getDefaultProcessorsProvider()
+    public function createXmlBuilder()
     {
-        return new DefaultProcessorsProvider();
+        return new XmlBuilder($this->getContainer());
     }
 
-    public function processXml($xmlBody)
+    public function createAnnotationsBuilder()
     {
-        foreach ($this->getProcessors() as $processor) {
-            /* @var \Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Processor $processor */
-            $processor->processXml($xmlBody, $this);
-        }
+        return new AnnotationsBuilder($this->getContainer());
+    }
+
+    public function createYmlBuilder()
+    {
+        // TODO
     }
 }

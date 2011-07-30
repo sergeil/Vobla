@@ -25,25 +25,27 @@
 namespace Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors;
 
 use Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Definition\References\IdReference,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor,
     Vobla\ServiceConstruction\Definition\References\QualifiedReference,
     Vobla\Exception,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Parameter,
-    Logade\LoggerFactory;
+    Logade\LoggerFactory,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class ConstructorProcessor extends AbstractDereferencingProcessor //implements Processor
 {
-    public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)
+    public function handle(\ReflectionClass $reflClass, ServiceDefinition $serviceDefinition, AnnotationsBuilder $annotationsBuilder)
     {
+        $ar = $annotationsBuilder->getAnnotationReader();
+
         $isConstructorFound = false;
         foreach ($reflClass->getMethods() as $reflMethod) {
             /* @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Constructor $constructorAnnotation */
-            $constructorAnnotation = $annotationReader->getMethodAnnotation($reflMethod, Constructor::clazz());
+            $constructorAnnotation = $ar->getMethodAnnotation($reflMethod, Constructor::clazz());
             if (!$constructorAnnotation) {
                 continue;
             } else if ($isConstructorFound) {

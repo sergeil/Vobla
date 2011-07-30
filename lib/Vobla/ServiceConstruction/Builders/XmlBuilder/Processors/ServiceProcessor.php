@@ -67,10 +67,11 @@ class ServiceProcessor implements Processor
         return $this->injectorsOrderResolver;
     }
 
-    public function processXml($xmlBody, Container $container, XmlBuilder $xmlBuilder)
+    public function processXml($xmlBody, XmlBuilder $xmlBuilder)
     {
         $xmlEl = new \SimpleXMLElement($xmlBody, 0, false, XsdNamespaces::CONTEXT);
 
+        $container = $xmlBuilder->getContainer();
         foreach ($xmlEl->children() as $childXml) {
             $elName = $childXml->getName();
             if ($elName == 'service') {

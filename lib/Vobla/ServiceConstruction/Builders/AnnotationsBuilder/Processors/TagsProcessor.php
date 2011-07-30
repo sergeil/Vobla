@@ -28,16 +28,17 @@ use Vobla\ServiceConstruction\Definition\ServiceDefinition,
     Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Definition\References\IdReference,
     Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Tag,
-    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service;
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations\Service,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\AnnotationsBuilder;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */
 class TagsProcessor implements Processor
 {
-    public function handle(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)
+    public function handle(\ReflectionClass $reflClass, ServiceDefinition $serviceDefinition, AnnotationsBuilder $annotationsBuilder)
     {
-        $this->scanTags($annotationReader, $reflClass, $serviceDefinition);
+        $this->scanTags($annotationsBuilder->getAnnotationReader(), $reflClass, $serviceDefinition);
     }
 
     protected function scanTags(AnnotationReader $annotationReader, \ReflectionClass $reflClass, ServiceDefinition $serviceDefinition)

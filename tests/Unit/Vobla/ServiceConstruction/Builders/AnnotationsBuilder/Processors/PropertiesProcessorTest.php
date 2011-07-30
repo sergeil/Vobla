@@ -43,35 +43,21 @@ use Doctrine\Common\Annotations\AnnotationReader,
  *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class PropertiesProcessorTest extends \PHPUnit_Framework_TestCase
+class PropertiesProcessorTest extends AbstractTest
 {
     /**
      * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\PropertiesProcessor
      */
     protected $pp;
 
-    /**
-     * @var \Doctrine\Common\Annotations\AnnotationReader
-     */
-    protected $ar;
-
-    /**
-     * @var \Moko\MockFactory
-     */
-    protected $mf;
-
-    public function setUp()
+    public function doSetUp()
     {
         $this->pp = new PropertiesProcessor();
-        $this->ar = new AnnotationReader();
-        $this->mf = new \Moko\MockFactory($this);
     }
 
-    public function tearDown()
+    public function doTearDown()
     {
         $this->pp = null;
-        $this->ar = null;
-        $this->mf = null;
     }
 
     public function testHandle()
@@ -107,7 +93,7 @@ class PropertiesProcessorTest extends \PHPUnit_Framework_TestCase
         ->createMock();
 
         $this->pp->setInjectorsOrderResolver($ior);
-        $this->pp->handle($this->ar, new \ReflectionClass(GeneralizedAutowiringClass::clazz()), $def);
+        $this->pp->handle(new \ReflectionClass(GeneralizedAutowiringClass::clazz()), $def, $this->ab);
 
         $this->assertEquals(6, sizeof($resolved));
         $expectedKeys = array('id', 'qlr', 'type', 'tag');
@@ -136,7 +122,7 @@ class PropertiesProcessorTest extends \PHPUnit_Framework_TestCase
     public function testHandle_configPropertyAndAutowiredAtTheSameTime()
     {
         $def = new ServiceDefinition();
-        $this->pp->handle($this->ar, new \ReflectionClass(ConfigPropertyAndAutowiredMixed::clazz()), $def);
+        $this->pp->handle(new \ReflectionClass(ConfigPropertyAndAutowiredMixed::clazz()), $def, $this->ab);
     }
 
     protected function doTestResolvedResult(array $resolvedEntry, $propertyName)
