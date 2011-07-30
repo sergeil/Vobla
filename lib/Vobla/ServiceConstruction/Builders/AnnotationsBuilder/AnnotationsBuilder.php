@@ -137,6 +137,7 @@ class AnnotationsBuilder extends AbstractBuilder
 
         foreach ($this->getProcessors() as $processor) {
             try {
+                /* @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Processors\Processor $processor */
                 $processor->handle($this->getAnnotationReader(), $reflClass, $definition);
             } catch (\Exception $e) {
                 throw new Exception(
@@ -196,8 +197,6 @@ class AnnotationsBuilder extends AbstractBuilder
                     }
                 }
             } catch (\Exception $e) {
-                echo "> ".$e->getMessage()."\n";
-
                 $skippedFiles[] = array(
                     $file->getFilename(),
                     $e
