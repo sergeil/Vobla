@@ -22,23 +22,15 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla;
+namespace Vobla\Extensibility\ProvidersDecoration;
+
+use Vobla\Container,
+    Vobla\Extensibility\PluginManager;
 
 /**
- * This exception must be thrown when it was not possible to initialize
- * some required functionality while bootstrapping/working with the container.
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
- */ 
-class InitializationException extends Exception
+ */
+class DecoratedDefinitionProcessorsProvider extends AbstractDecorationAwareProvider
 {
-    static public function create($owner, $initMethod = 'init')
-    {
-        $msg = sprintf(
-            'Initialization step was omitted, you need to use %s::%s before you can this class.',
-            get_class($owner), $initMethod
-        );
-
-        throw new self($msg);
-    }
+    
 }

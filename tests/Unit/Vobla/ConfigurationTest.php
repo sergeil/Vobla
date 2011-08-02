@@ -7,8 +7,9 @@ require_once __DIR__.'/../../bootstrap.php';
 use Vobla\Configuration,
     Vobla\ServiceConstruction\Assemblers\AssemblersProvider,
     Vobla\Context\ContextScopeHandlersProvider,
-    Vobla\ServiceLocating\ServiceLocatorsProvider;
-
+    Vobla\ServiceLocating\ServiceLocatorsProvider,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ProcessorsProvider as AnnotationProcessorsProvider,
+    Vobla\ServiceConstruction\Builders\XmlBuilder\ProcessorsProvider as XmlProcessorsProvider;
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
@@ -61,6 +62,30 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             sprintf(
                 'If no instance of %s is explicitly provided then %s::getServiceLocatorsProvider() method must create one automatically',
                 ServiceLocatorsProvider::CLAZZ, Configuration::clazz()
+            )
+        );
+    }
+
+    public function testGetAnnotationsBuilderProcessorsProvider()
+    {
+        $this->assertType(
+            AnnotationProcessorsProvider::CLAZZ,
+            $this->cfg->getAnnotationsBuilderProcessorsProvider(),
+            sprintf(
+                'If no instance of %s is explicitly provided then %s::getAnnotationsBuilderProcessorsProvider() method must create one automatically',
+                AnnotationProcessorsProvider::CLAZZ, Configuration::clazz()
+            )
+        );
+    }
+
+    public function testGetXmlBuilderProcessorsProvider()
+    {
+        $this->assertType(
+            XmlProcessorsProvider::CLAZZ,
+            $this->cfg->getXmlBuilderProcessorsProvider(),
+            sprintf(
+                'If no instance of %s is explicitly provided then %s::getXmlBuilderProcessorsProvider() method must create one automatically',
+                XmlProcessorsProvider::CLAZZ, Configuration::clazz()
             )
         );
     }

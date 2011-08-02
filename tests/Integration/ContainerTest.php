@@ -37,7 +37,8 @@ require_once __DIR__ . '/fixtures/Controllers/Controller.php';
 require_once __DIR__ . '/fixtures/Controllers/DashboardController.php';
 require_once __DIR__ . '/fixtures/Controllers/TestController.php';
 require_once __DIR__ . '/fixtures/Controllers/SettingsController.php';
-
+require_once __DIR__ . '/HelloWorldPlugin/Plugin.php';
+require_once __DIR__ . '/HelloWorldPlugin/InjectingProcessor.php';
 
 use Vobla\Container,
     Vobla\Configuration,
@@ -45,17 +46,21 @@ use Vobla\Container,
     Doctrine\Common\Annotations\AnnotationReader,
     Vobla\ServiceConstruction\Builders\XmlBuilder\XmlBuilder,
     Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Import\ImportProcessor,
-    Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Import\StaticPathResolver;
+    Vobla\ServiceConstruction\Builders\XmlBuilder\Processors\Import\StaticPathResolver,
+    Vobla\Tools\Toolkit;
 
 /**
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
 class ContainerTest extends \PHPUnit_Framework_TestCase
 {
-    public function testItWithAnnotations()
+    public function testItWithAnnotationsAndWithPluginManager()
     {
         $container = new Container();
+        $pm = $container->getPluginManager();
+        $pm->install(new \Vobla\HelloWorldPlugin\Plugin());
+        $pm->activate();
+
         $container->getConfigHolder()->set('memcacheServerUrl', 'some-foo-memcache-url');
 
         $ab = $container->getBuildersFactory()->createAnnotationsBuilder();
@@ -73,8 +78,9 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
         try {
             $this->tc($container);
+            $this->assertEquals('Hello World!', $container->getServiceById('rootService')->helloProperty);
         } catch (\Exception $e) {
-            \Vobla\Tools\Toolkit::printException($e);
+            Toolkit::printException($e);
             throw $e;
         }
     }
@@ -82,7 +88,6 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
     public function testItWithXmls()
     {
         $container = new Container();
-
         $xb = $container->getBuildersFactory()->createXmlBuilder();
 
         foreach ($xb->getProcessors() as $p) {
@@ -97,7 +102,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
 
             $this->tc($container);
         } catch (\Exception $e) {
-            //\Vobla\Tools\Toolkit::printException($e);
+            Toolkit::printException($e);
             throw $e;
         }
     }

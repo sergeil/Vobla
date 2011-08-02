@@ -60,7 +60,12 @@ class BuildersFactory
      */
     public function createXmlBuilder($processorsProvider = null)
     {
-        return new XmlBuilder($this->getContainer(), $processorsProvider);
+        $c = $this->getContainer();
+        if (null == $processorsProvider) {
+            $processorsProvider = $c->getConfiguration()->getXmlBuilderProcessorsProvider();
+        }
+
+        return new XmlBuilder($c, $processorsProvider);
     }
 
     /**
@@ -68,6 +73,11 @@ class BuildersFactory
      */
     public function createAnnotationsBuilder($processorsProvider = null)
     {
-        return new AnnotationsBuilder($this->getContainer(), $processorsProvider);
+        $c = $this->getContainer();
+        if (null == $processorsProvider) {
+            $processorsProvider = $c->getConfiguration()->getAnnotationsBuilderProcessorsProvider();
+        }
+
+        return new AnnotationsBuilder($c, $processorsProvider);
     }
 }

@@ -22,23 +22,35 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla;
+namespace Vobla\Extensibility\ProvidersDecoration;
+
+use Vobla\Container,
+    Vobla\Extensibility\PluginManager,
+    Vobla\Context\ContextScopeHandlersProvider;
 
 /**
- * This exception must be thrown when it was not possible to initialize
- * some required functionality while bootstrapping/working with the container.
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
- */ 
-class InitializationException extends Exception
+ */
+class DecoratedContextScopeHandlersProvider extends AbstractDecorationAwareProvider implements ContextScopeHandlersProvider
 {
-    static public function create($owner, $initMethod = 'init')
+    public function init(Container $container)
     {
-        $msg = sprintf(
-            'Initialization step was omitted, you need to use %s::%s before you can this class.',
-            get_class($owner), $initMethod
-        );
+        $this->getOriginalProvider()->init($container);
+    }
 
-        throw new self($msg);
+    /**
+     * {@inheritdoc}
+     */
+    public function getContextScopeHandlers()
+    {
+        return $this->getSortedProviders();
+    }
+
+    /**
+     * @override
+     */
+    protected function getProviders()
+    {
+        return $this->getOriginalProvider()->getContextScopeHandlers();
     }
 }

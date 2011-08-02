@@ -10,6 +10,8 @@ use Vobla\ServiceConstruction\Builders\AnnotationsBuilder\Annotations as Vobla;
  */ 
 class RootService 
 {
+    public $helloProperty;
+
     public $loggerFactory;
 
     /**

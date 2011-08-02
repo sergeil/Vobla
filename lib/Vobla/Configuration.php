@@ -27,7 +27,9 @@ namespace Vobla;
 use Vobla\ServiceConstruction\Assemblers\AssemblersProvider,
     Vobla\ServiceConstruction\Assemblers\DefaultAssemblersProvider,
     Vobla\Context\DefaultContextScopeHandlersProvider,
-    Vobla\ServiceLocating\DefaultServiceLocatorsProvider;
+    Vobla\ServiceLocating\DefaultServiceLocatorsProvider,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\DefaultProcessorsProvider as AnnotationsDefaultProcessorsProvider,
+    Vobla\ServiceConstruction\Builders\XmlBuilder\DefaultProcessorsProvider as XmlDefaultProcessorsProvider;
 
 /**
  * The most important extension point of the container, you are
@@ -57,6 +59,16 @@ class Configuration
      * @var \Vobla\ServiceLocating\ServiceLocatorsProvider
      */
     protected $serviceLocatorsProvider;
+
+    /**
+     * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ProcessorsProvider
+     */
+    protected $xmlBuilderProcessorsProvider;
+
+    /**
+     * @var \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ProcessorsProvider
+     */
+    protected $annotationsBuilderProcessorsProvider;
 
     /**
      * @param \Vobla\ServiceConstruction\Assemblers\AssemblersProvider $assemblersProvider
@@ -130,6 +142,47 @@ class Configuration
 
         return $this->serviceLocatorsProvider;
     }
+
+    /**
+     * @param \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ProcessorsProvider $annotationsBuilderProcessorsProvider
+     */
+    public function setAnnotationsBuilderProcessorsProvider($annotationsBuilderProcessorsProvider)
+    {
+        $this->annotationsBuilderProcessorsProvider = $annotationsBuilderProcessorsProvider;
+    }
+
+    /**
+     * @return \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ProcessorsProvider
+     */
+    public function getAnnotationsBuilderProcessorsProvider()
+    {
+        if (null === $this->annotationsBuilderProcessorsProvider) {
+            $this->annotationsBuilderProcessorsProvider = new AnnotationsDefaultProcessorsProvider();
+        }
+
+        return $this->annotationsBuilderProcessorsProvider;
+    }
+
+    /**
+     * @param \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ProcessorsProvider $xmlBuilderProcessorsProvider
+     */
+    public function setXmlBuilderProcessorsProvider($xmlBuilderProcessorsProvider)
+    {
+        $this->xmlBuilderProcessorsProvider = $xmlBuilderProcessorsProvider;
+    }
+
+    /**
+     * @return \Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ProcessorsProvider
+     */
+    public function getXmlBuilderProcessorsProvider()
+    {
+        if (null === $this->xmlBuilderProcessorsProvider) {
+            $this->xmlBuilderProcessorsProvider = new XmlDefaultProcessorsProvider();
+        }
+
+        return $this->xmlBuilderProcessorsProvider;
+    }
+
 
     public function validate()
     {

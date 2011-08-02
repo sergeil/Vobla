@@ -22,23 +22,35 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla;
+namespace Vobla\Extensibility\ProvidersDecoration;
+
+use Vobla\Container,
+    Vobla\ServiceConstruction\Assemblers\AssemblersProvider,
+    Vobla\Extensibility\PluginManager;
 
 /**
- * This exception must be thrown when it was not possible to initialize
- * some required functionality while bootstrapping/working with the container.
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
- */ 
-class InitializationException extends Exception
+ */
+class DecoratedAssemblersProvider extends AbstractDecorationAwareProvider implements AssemblersProvider
 {
-    static public function create($owner, $initMethod = 'init')
+    public function init(Container $container)
     {
-        $msg = sprintf(
-            'Initialization step was omitted, you need to use %s::%s before you can this class.',
-            get_class($owner), $initMethod
-        );
+        $this->getOriginalProvider()->init($container);
+    }
 
-        throw new self($msg);
+    /**
+     * {@inheritdoc}
+     */
+    public function getAssemblers()
+    {
+        return array_values($this->getSortedProviders());
+    }
+
+    /**
+     * @override
+     */
+    protected function getProviders()
+    {
+        return $this->getOriginalProvider()->getAssemblers();
     }
 }

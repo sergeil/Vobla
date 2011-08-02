@@ -22,23 +22,27 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla;
+namespace Vobla\Extensibility\ProvidersDecoration\Builders;
+
+use Vobla\Extensibility\ProvidersDecoration\AbstractDecorationAwareProvider,
+    Vobla\ServiceConstruction\Builders\AnnotationsBuilder\ProcessorsProvider;
 
 /**
- * This exception must be thrown when it was not possible to initialize
- * some required functionality while bootstrapping/working with the container.
- *
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 
-class InitializationException extends Exception
+class DecoratedAnnotationsBuilderProcessorsProvider extends AbstractDecorationAwareProvider implements ProcessorsProvider
 {
-    static public function create($owner, $initMethod = 'init')
+    protected function getProviders()
     {
-        $msg = sprintf(
-            'Initialization step was omitted, you need to use %s::%s before you can this class.',
-            get_class($owner), $initMethod
-        );
-
-        throw new self($msg);
+        return $this->getOriginalProvider()->getProcessors();
     }
+
+    /**
+     * @return array
+     */
+    public function getProcessors()
+    {
+        return $this->getSortedProviders();
+    }
+
 }

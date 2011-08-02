@@ -31,7 +31,8 @@ use Vobla\ServiceConstruction\ServiceBuilder,
     Vobla\ServiceLocating\DefaultImpls\QualifierServiceLocator,
     Vobla\ServiceLocating\CompositeServiceLocator,
     Vobla\ServiceConstruction\Definition\ServiceDefinition,
-    Vobla\ServiceLocating\ServiceLocator;
+    Vobla\ServiceLocating\ServiceLocator,
+    Vobla\Extensibility\PluginManager;
 
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
@@ -73,10 +74,15 @@ class Container
      */
     protected $buildersFactory;
 
+    /**
+     * @var \Vobla\Extensibility\PluginManager
+     */
+    protected $pluginManager;
+
     public function __construct($configuration = null)
     {
-        if (null === $configuration) {
-            $this->setConfiguration(new Configuration());
+        if (null !== $configuration) {
+            $this->setConfiguration($configuration);
         }
     }
 
@@ -169,6 +175,10 @@ class Container
      */
     public function getConfiguration()
     {
+        if (null === $this->configuration) {
+            $this->setConfiguration(new Configuration());
+        }
+
         return $this->configuration;
     }
 
@@ -210,6 +220,27 @@ class Container
         return $this->buildersFactory;
     }
 
+    /**
+     * @param \Vobla\Extensibility\PluginManager $pluginManager
+     */
+    public function setPluginManager(PluginManager $pluginManager)
+    {
+        $pluginManager->init($this);
+        $this->pluginManager = $pluginManager;
+    }
+
+    /**
+     * @return \Vobla\Extensibility\PluginManager
+     */
+    public function getPluginManager()
+    {
+        if (null === $this->pluginManager) {
+            $this->setPluginManager(new PluginManager());
+        }
+
+        return $this->pluginManager;
+    }
+    
     public function addServiceDefinition($id, ServiceDefinition $serviceDefinition)
     {
         $this->getDefinitionsHolder()->register($id, $serviceDefinition);
