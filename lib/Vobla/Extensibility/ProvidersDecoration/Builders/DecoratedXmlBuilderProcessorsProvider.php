@@ -27,7 +27,6 @@ namespace Vobla\Extensibility\ProvidersDecoration\Builders;
 use Vobla\Extensibility\ProvidersDecoration\AbstractDecorationAwareProvider,
     Vobla\ServiceConstruction\Builders\XmlBuilder\ProcessorsProvider;
 
-
 /**
  * @author Sergei Lissovski <sergei.lissovski@gmail.com>
  */ 

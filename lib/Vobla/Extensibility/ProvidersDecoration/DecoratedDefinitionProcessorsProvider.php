@@ -22,7 +22,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace Vobla\Extensibility\ProvidersDecoration;
+namespace Vobla\Extensibility\ProvidersDecoration\Builders;
 
 use Vobla\Container,
     Vobla\Extensibility\PluginManager;
@@ -32,5 +32,9 @@ use Vobla\Container,
  */
 class DecoratedDefinitionProcessorsProvider extends AbstractDecorationAwareProvider
 {
-    
+    protected function getProviders()
+    {
+        throw new \Vobla\Exception('Not implemented yet');
+    }
+
 }
